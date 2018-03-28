@@ -1,5 +1,8 @@
 CREATE DATABASE if not exists ipl;
 
+create user 'ipluser'@'localhost' identified by 'mypassword';
+grant all on ipl.* to 'ipluser'@'localhost';
+
 CREATE TABLE IF NOT EXISTS ipl.user_types (
   user_type VARCHAR(25) UNIQUE
 );

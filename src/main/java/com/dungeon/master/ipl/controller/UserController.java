@@ -19,7 +19,7 @@ public class UserController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
     @Autowired
     private RepositoriesService repositoriesService;
-
+    
     @GetMapping(path = "/getusers", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public List<Users> getAllConsumers() {
         LOGGER.info(repositoriesService.getAllUsers().toString());
