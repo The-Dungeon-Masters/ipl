@@ -28,18 +28,20 @@ public class Users implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "users_id_gen")
     @Column(name = "user_id", nullable = false)
     @Id
-    private int userId;
+    private long userId;
     @Column(name = "user_name", nullable = false)
     private String userName;
     private String password;
     private String email;
+    private String userType = UserType.User.name();
     private int points;
+    private String createdBy;
 
-    public int getUserId() {
+    public long getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(long userId) {
         this.userId = userId;
     }
 
@@ -71,43 +73,54 @@ public class Users implements Serializable {
         return points;
     }
 
+    public void setPoints(int points) { this.points = points; }
+
+    public String getCreatedBy() { return createdBy; }
+
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+
+    public String getUserType() { return userType; }
+
+    public void setUserType(String userType) { this.userType = userType; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Users users = (Users) o;
+
+        if (userId != users.userId) return false;
+        if (points != users.points) return false;
+        if (!userName.equals(users.userName)) return false;
+        if (!password.equals(users.password)) return false;
+        if (!email.equals(users.email)) return false;
+        if (!userType.equals(users.userType)) return false;
+        return createdBy.equals(users.createdBy);
+    }
+
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + userId;
-        result = prime * result + (userName == null ? 0 : userName.hashCode());
+        int result = (int) (userId ^ (userId >>> 32));
+        result = 31 * result + userName.hashCode();
+        result = 31 * result + password.hashCode();
+        result = 31 * result + email.hashCode();
+        result = 31 * result + userType.hashCode();
+        result = 31 * result + points;
+        result = 31 * result + createdBy.hashCode();
         return result;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Users other = (Users)obj;
-        if (userId != other.userId) {
-            return false;
-        }
-        if (userName == null) {
-            if (other.userName != null) {
-                return false;
-            }
-        } else if (!userName.equals(other.userName)) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public String toString() {
-        return "Users [userId=" + userId + ", userName=" + userName + ", email=" + email + ", points=" + points + "]";
+        return "Users{" +
+                "userId=" + userId +
+                ", userName='" + userName + '\'' +
+                ", password='" + password + '\'' +
+                ", email='" + email + '\'' +
+                ", userType='" + userType + '\'' +
+                ", points=" + points +
+                ", createdBy='" + createdBy + '\'' +
+                '}';
     }
-
 }

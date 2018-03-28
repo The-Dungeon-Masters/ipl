@@ -1,15 +1,12 @@
 CREATE DATABASE if not exists ipl;
 
-create user 'ipluser'@'localhost' identified by 'mypassword';
-grant all on ipl.* to 'ipluser'@'localhost';
-
 CREATE TABLE IF NOT EXISTS ipl.user_types (
   user_type VARCHAR(25) UNIQUE
 );
 
 CREATE TABLE if not exists ipl.users
 (
-    user_id int NOT NULL,
+    user_id int NOT NULL AUTO_INCREMENT,
     user_name varchar(50) NOT NULL,
     password varchar(50) NOT NULL,
     email varchar(50),
