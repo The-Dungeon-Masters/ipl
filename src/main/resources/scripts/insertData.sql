@@ -13,8 +13,8 @@ INSERT INTO ipl.teams(team_id, team_name, team_full_name)	VALUES (6, 'RR', 'RAJA
 INSERT INTO ipl.teams(team_id, team_name, team_full_name)	VALUES (7, 'RCB', 'ROYAL CHALLENGERS BANGALORE');
 INSERT INTO ipl.teams(team_id, team_name, team_full_name)	VALUES (8, 'SRH', 'SUNRISERS HYDERABAD');
 
-INSERT INTO ipl.contest(	contest_id, contest_points, contest_type)	VALUES (1, 0, 'lunch');
-INSERT INTO ipl.contest(	contest_id, contest_points, contest_type)	VALUES (2, 10, '10 Points');
-INSERT INTO ipl.contest(	contest_id, contest_points, contest_type)	VALUES (3, 50, '50 Points');
+INSERT INTO ipl.contest(contest_id, contest_points, contest_type)	VALUES (1, 0, 'lunch');
+INSERT INTO ipl.contest(contest_id, contest_points, contest_type)	VALUES (2, 10, '10 Points');
+INSERT INTO ipl.contest(contest_id, contest_points, contest_type)	VALUES (3, 50, '50 Points');
 
 
