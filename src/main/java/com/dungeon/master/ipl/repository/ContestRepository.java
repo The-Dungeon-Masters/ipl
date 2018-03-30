@@ -1,0 +1,10 @@
+package com.dungeon.master.ipl.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.dungeon.master.ipl.model.Contest;
+
+public interface ContestRepository extends JpaRepository<Contest, Long> {
+
+    // Users findByName(String name);
+}

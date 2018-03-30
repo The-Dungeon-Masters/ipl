@@ -19,7 +19,7 @@ CREATE TABLE if not exists ipl.users
 
 CREATE TABLE if not exists ipl.teams
 (
-    team_id int NOT NULL,
+    team_id int NOT NULL AUTO_INCREMENT,
     team_name varchar(50) NOT NULL,
     team_full_name varchar(50) NOT NULL,
     CONSTRAINT teams_pkey PRIMARY KEY (team_id)
@@ -27,7 +27,7 @@ CREATE TABLE if not exists ipl.teams
 
 CREATE TABLE if not exists ipl.matches
 (
-    match_id int NOT NULL,
+    match_id int NOT NULL AUTO_INCREMENT,
     team_one_id int NOT NULL,
     team_two_id int NOT NULL,
     status varchar(50),
@@ -39,19 +39,19 @@ CREATE TABLE if not exists ipl.matches
 
 CREATE TABLE if not exists ipl.contest
 (
-    contest_id int NOT NULL,
-    contest_points int NOT NULL,
-    contest_type varchar(50) NOT NULL,
-    CONSTRAINT contest_pkey PRIMARY KEY (contest_id)
+    id int NOT NULL AUTO_INCREMENT,
+    points int NOT NULL,
+    type varchar(50) NOT NULL,
+    CONSTRAINT contest_pkey PRIMARY KEY (id)
 );
 
 CREATE TABLE if not exists ipl.contest_users
 (
-    id int NOT NULL,
+    id int NOT NULL AUTO_INCREMENT,
     contest_id int NOT NULL,
     user_id int NOT NULL,
     CONSTRAINT contest_users_pkey PRIMARY KEY (id),
-    CONSTRAINT contest_users_fkey1 FOREIGN KEY (contest_id) REFERENCES ipl.contest (contest_id) ON UPDATE NO ACTION,
+    CONSTRAINT contest_users_fkey1 FOREIGN KEY (contest_id) REFERENCES ipl.contest (id) ON UPDATE NO ACTION,
     CONSTRAINT contest_users_fkey2 FOREIGN KEY (user_id) REFERENCES ipl.users (user_id) ON UPDATE NO ACTION
 );
 
@@ -68,14 +68,13 @@ CREATE TABLE if not exists ipl.user_recharge
 
 CREATE TABLE if not exists ipl.user_matches
 (
-    user_id int NOT NULL,
-    contest_id int NOT NULL,
+	id int NOT NULL AUTO_INCREMENT,
+    user_contest_id int NOT NULL,
     match_id int NOT NULL,
     team_id int NOT NULL,
     points int,
-    CONSTRAINT user_matches_pkey PRIMARY KEY (user_id,match_id,team_id,contest_id),
-    CONSTRAINT user_matches_fkey1 FOREIGN KEY (user_id) REFERENCES ipl.users (user_id) ON UPDATE NO ACTION,
-    CONSTRAINT user_matches_fkey2 FOREIGN KEY (contest_id) REFERENCES ipl.contest (contest_id) ON UPDATE NO ACTION,
+    CONSTRAINT user_matches_pkey PRIMARY KEY (id),
+    CONSTRAINT user_matches_fkey1 FOREIGN KEY (user_contest_id) REFERENCES ipl.contest_users (id) ON UPDATE NO ACTION,
     CONSTRAINT user_matches_fkey3 FOREIGN KEY (match_id) REFERENCES ipl.matches (match_id) ON UPDATE NO ACTION,
     CONSTRAINT user_matches_fkey4 FOREIGN KEY (team_id) REFERENCES ipl.teams (team_id) ON UPDATE NO ACTION
 );
