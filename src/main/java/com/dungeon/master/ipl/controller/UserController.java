@@ -2,6 +2,9 @@ package com.dungeon.master.ipl.controller;
 
 import java.util.List;
 
+import com.dungeon.master.ipl.dto.UserDto;
+import com.dungeon.master.ipl.model.Contest;
+import com.dungeon.master.ipl.service.UserContestService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +21,11 @@ public class UserController {
     @Autowired
     private RepositoriesService repositoriesService;
 
-    @PostMapping(value = "/adduser")
-    public void addUser(@RequestBody Users user) {
+    @Autowired
+    private UserContestService userContestService;
+
+    @PostMapping(value = "/adduser", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public void addUser(@RequestBody UserDto user) {
         repositoriesService.saveUser(user);
     }
 
@@ -29,17 +35,22 @@ public class UserController {
     }
 
     @GetMapping(path = "/getall", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public List<Users> getAllUsers() {
+    public List<UserDto> getAllUsers() {
         return repositoriesService.getAllUsers();
     }
 
     @GetMapping(path = "/get/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public Users getUser(@PathVariable("id") Long id) {
+    public UserDto getUser(@PathVariable("id") Long id) {
         return repositoriesService.getUser(id);
     }
 
     @PutMapping("/update")
-    public void updateCustomer(@RequestBody Users user) {
+    public void updateCustomer(@RequestBody UserDto user) {
         repositoriesService.updateUser(user);
+    }
+
+    @GetMapping(path = "/getcontests/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public List<Contest> getUserContest(@PathVariable long id) {
+        return userContestService.getUserContest(id);
     }
 }

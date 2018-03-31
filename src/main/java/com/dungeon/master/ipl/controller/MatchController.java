@@ -24,6 +24,7 @@ import com.dungeon.master.ipl.dto.ContestwisePrediction;
 import com.dungeon.master.ipl.dto.MatchPrediction;
 import com.dungeon.master.ipl.dto.MatchSummary;
 import com.dungeon.master.ipl.dto.TeamwiseUsers;
+import com.dungeon.master.ipl.dto.UserDto;
 import com.dungeon.master.ipl.model.Contest;
 import com.dungeon.master.ipl.model.Match;
 import com.dungeon.master.ipl.model.Team;
@@ -127,11 +128,11 @@ public class MatchController {
     @PostMapping(value = "/predictMatch", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public void addUser(@RequestBody MatchPrediction prediction) {
         
-        Users user = repositoriesService.getUser(prediction.getUserId());
+        UserDto userDto = repositoriesService.getUser(prediction.getUserId());
         long matchId = prediction.getMatchId();
         
         for(ContestPrediction cPrediction:prediction.getContestPredictions()){
-            UserContest userContest = new UserContest(user, contestRepository.findOne(cPrediction.getContestId()));
+            UserContest userContest = new UserContest(userDto.getUser(), contestRepository.findOne(cPrediction.getContestId()));
             
             UserMatch userMatch = new UserMatch();
             userMatch.setUserContest(userContest);

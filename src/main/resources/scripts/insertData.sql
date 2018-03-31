@@ -2,7 +2,15 @@ INSERT INTO ipl.user_types(user_type)	VALUES ('Admin');
 INSERT INTO ipl.user_types(user_type)	VALUES ('User');
 
 INSERT INTO ipl.users(user_id, user_name, password, email, points, user_type, created_by)
-VALUES (1, 'superadmin', 'superadmin','fakePassword', 0, 'Admin', 'Default');
+VALUES (1, 'superadmin', 'superadmin','fakePassword', 0, 'Admin', 'Default'),
+(2, 'superman', 'superman','fakePassword', 0, 'User', 'Default');
+
+INSERT INTO ipl.contest(id, points, type)	VALUES (1, 0, 'lunch');
+INSERT INTO ipl.contest(id, points, type)	VALUES (2, 10, '10 Points');
+INSERT INTO ipl.contest(id, points, type)	VALUES (3, 50, '50 Points');
+
+INSERT INTO ipl.contest_users(id, contest_id, user_id)
+VALUES (1, 1, 2),(2, 2, 2),(3, 3, 2);
 
 INSERT INTO ipl.teams(team_id, team_name, team_full_name)	VALUES (1, 'MI', 'MUMBAI INDIANS');
 INSERT INTO ipl.teams(team_id, team_name, team_full_name)	VALUES (2, 'KKR', 'KOLKATA KNIGHT RIDERS');
@@ -12,10 +20,6 @@ INSERT INTO ipl.teams(team_id, team_name, team_full_name)	VALUES (5, 'KXIP', 'KI
 INSERT INTO ipl.teams(team_id, team_name, team_full_name)	VALUES (6, 'RR', 'RAJASTHAN ROYALS');
 INSERT INTO ipl.teams(team_id, team_name, team_full_name)	VALUES (7, 'RCB', 'ROYAL CHALLENGERS BANGALORE');
 INSERT INTO ipl.teams(team_id, team_name, team_full_name)	VALUES (8, 'SRH', 'SUNRISERS HYDERABAD');
-
-INSERT INTO ipl.contest(id, points, type)	VALUES (1, 0, 'lunch');
-INSERT INTO ipl.contest(id, points, type)	VALUES (2, 10, '10 Points');
-INSERT INTO ipl.contest(id, points, type)	VALUES (3, 50, '50 Points');
 
 insert into ipl.matches (match_id, team_one_id, team_two_id, status, start_time) values ('1', '1', '4', NULL, '2018-04-07 20:00:00'),
 ('2', '3', '5', NULL, '2018-04-08 16:00:00'),
