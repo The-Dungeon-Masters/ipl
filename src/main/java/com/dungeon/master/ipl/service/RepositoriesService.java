@@ -3,6 +3,7 @@ package com.dungeon.master.ipl.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.dungeon.master.ipl.dto.UserChangePassword;
 import com.dungeon.master.ipl.dto.UserDto;
 import com.dungeon.master.ipl.model.Contest;
 import com.dungeon.master.ipl.util.IplConstants;
@@ -69,8 +70,7 @@ public class RepositoriesService {
 
     @Transactional
     public void saveUser(UserDto userDto) {
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(IplConstants.PASSWORD_STRENGTH);
-        userDto.getUser().setPassword(passwordEncoder.encode(userDto.getUser().getPassword()));
+        userDto.getUser().setPassword(getEncryptedPassword(userDto.getUser().getPassword()));
         usersRepository.save(userDto.getUser());
         userContestService.saveUserContest(userDto);
     }
@@ -80,7 +80,21 @@ public class RepositoriesService {
         Users existingUser = usersRepository.getOne(userDto.getUser().getUserId());
         existingUser.setUserName(userDto.getUser().getUserName());
         existingUser.setEmail(userDto.getUser().getEmail());
+        usersRepository.save(userDto.getUser());
         userContestRepository.deleteByUser(existingUser);
         saveUser(userDto);
+    }
+
+    @Transactional
+    public void changePassword(UserChangePassword userChangePassword) {
+        Users existingUser = usersRepository.getOne(userChangePassword.getUserId());
+        // TODO : Check existing password
+        existingUser.setPassword(getEncryptedPassword(userChangePassword.getNewPassword()));
+        usersRepository.save(existingUser);
+    }
+
+    private String getEncryptedPassword(String plainPassword) {
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(IplConstants.PASSWORD_STRENGTH);
+        return passwordEncoder.encode(plainPassword);
     }
 }

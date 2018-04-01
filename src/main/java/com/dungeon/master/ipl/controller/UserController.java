@@ -2,6 +2,7 @@ package com.dungeon.master.ipl.controller;
 
 import java.util.List;
 
+import com.dungeon.master.ipl.dto.UserChangePassword;
 import com.dungeon.master.ipl.dto.UserDto;
 import com.dungeon.master.ipl.model.Contest;
 import com.dungeon.master.ipl.service.UserContestService;
@@ -47,6 +48,11 @@ public class UserController {
     @PutMapping("/update")
     public void updateCustomer(@RequestBody UserDto user) {
         repositoriesService.updateUser(user);
+    }
+
+    @PutMapping("/changepassword")
+    public void changePassword(@RequestBody UserChangePassword newPassword) {
+        repositoriesService.changePassword(newPassword);
     }
 
     @GetMapping(path = "/getcontests/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
