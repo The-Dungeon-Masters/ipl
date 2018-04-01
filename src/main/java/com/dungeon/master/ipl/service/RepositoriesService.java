@@ -5,7 +5,9 @@ import java.util.List;
 
 import com.dungeon.master.ipl.dto.UserDto;
 import com.dungeon.master.ipl.model.Contest;
+import com.dungeon.master.ipl.util.IplConstants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.dungeon.master.ipl.model.Users;
@@ -67,6 +69,8 @@ public class RepositoriesService {
 
     @Transactional
     public void saveUser(UserDto userDto) {
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(IplConstants.PASSWORD_STRENGTH);
+        userDto.getUser().setPassword(passwordEncoder.encode(userDto.getUser().getPassword()));
         usersRepository.save(userDto.getUser());
         userContestService.saveUserContest(userDto);
     }

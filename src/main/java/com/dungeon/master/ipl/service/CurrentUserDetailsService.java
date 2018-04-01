@@ -20,7 +20,6 @@ public class CurrentUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
-        LOGGER.debug("Authenticating user with email={}", username);
         Users user = repositoriesService.getUserByName(username);
         return new CurrentUser(user);
     }

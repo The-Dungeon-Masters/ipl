@@ -2,8 +2,8 @@ INSERT INTO ipl.user_types(user_type)	VALUES ('Admin');
 INSERT INTO ipl.user_types(user_type)	VALUES ('User');
 
 INSERT INTO ipl.users(user_id, user_name, password, email, points, user_type, created_by)
-VALUES (1, 'superadmin', '$2a$10$QaVi2DOauWZJ734o.6j01etsZvmy2ifqO7ChLmaiIL4SDU/kl9Tee','superadmin@ipl', 0, 'Admin', 'Default'),
-(2, 'superman', '$2a$10$QaVi2DOauWZJ734o.6j01etsZvmy2ifqO7ChLmaiIL4SDU/kl9Tee','superman@ipl.com', 0, 'User', 'Default');
+VALUES (1, 'superadmin', '$2a$12$WL4PaL.sc7TCKkgmfZZAb.icigUwffy/tf352Iq9DDI5y83XLMSV.','superadmin@ipl', 0, 'Admin', 'Default'),
+(2, 'superman', '$2a$12$WL4PaL.sc7TCKkgmfZZAb.icigUwffy/tf352Iq9DDI5y83XLMSV.','superman@ipl.com', 0, 'User', 'Default');
 
 INSERT INTO ipl.contest(id, points, type)	VALUES (1, 0, 'lunch');
 INSERT INTO ipl.contest(id, points, type)	VALUES (2, 10, '10 Points');

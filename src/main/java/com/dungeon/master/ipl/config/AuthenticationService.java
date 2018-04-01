@@ -12,8 +12,8 @@ import java.util.Date;
 import static java.util.Collections.emptyList;
 
 class AuthenticationService {
-    static final long EXPIRATIONTIME = 864_000_000; // 10 days
-    static final String SECRET = "ThisIsASecret";
+    static final long EXPIRATIONTIME = 1000 * 60 * 15; // 15 mins
+    static final String SECRET = "Dungeon Master";
     static final String TOKEN_PREFIX = "Bearer";
     static final String HEADER_STRING = "Authorization";
 
