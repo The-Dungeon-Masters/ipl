@@ -8,7 +8,7 @@ CREATE TABLE if not exists ipl.users
 (
     user_id int NOT NULL AUTO_INCREMENT,
     user_name varchar(50) NOT NULL,
-    password varchar(50) NOT NULL,
+    password varchar(80) NOT NULL,
     email varchar(50),
     points int NOT NULL,
     user_type VARCHAR(25) NOT NULL DEFAULT  "User",

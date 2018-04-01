@@ -56,6 +56,10 @@ public class RepositoriesService {
         return userDto;
     }
 
+    public Users getUserByName(String name) {
+        return usersRepository.findByUserName(name);
+    }
+
     @Transactional
     public void deleteUser(long id) {
         usersRepository.delete(id);
