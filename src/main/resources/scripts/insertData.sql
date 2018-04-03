@@ -9,6 +9,9 @@ INSERT INTO ipl.contest(id, points, type)	VALUES (1, 0, 'lunch');
 INSERT INTO ipl.contest(id, points, type)	VALUES (2, 10, '10 Points');
 INSERT INTO ipl.contest(id, points, type)	VALUES (3, 50, '50 Points');
 
+INSERT INTO ipl.user_recharge(user_id, recharge_points, recharged_by, comments, recharge_time) VALUES
+(2, 100, 1, 'initial points', NOW());
+
 INSERT INTO ipl.contest_users(id, contest_id, user_id)
 VALUES (1, 1, 2),(2, 2, 2),(3, 3, 2);
 

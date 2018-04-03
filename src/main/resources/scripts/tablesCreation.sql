@@ -57,10 +57,12 @@ CREATE TABLE if not exists ipl.contest_users
 
 CREATE TABLE if not exists ipl.user_recharge
 (
-    id int NOT NULL,
+    id int NOT NULL AUTO_INCREMENT,
     user_id int NOT NULL,
     recharge_points int NOT NULL,
     recharged_by int NOT NULL,
+    comments varchar(50) NOT NULL,
+    recharge_time timestamp NOT NULL,
     CONSTRAINT user_recharge_pkey PRIMARY KEY (id),
     CONSTRAINT user_recharge_fkey1 FOREIGN KEY (user_id) REFERENCES ipl.users (user_id) ON UPDATE NO ACTION,
     CONSTRAINT user_recharge_fkey2 FOREIGN KEY (recharged_by) REFERENCES ipl.users (user_id) ON UPDATE NO ACTION

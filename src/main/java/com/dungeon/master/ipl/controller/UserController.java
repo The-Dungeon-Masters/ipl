@@ -4,7 +4,9 @@ import java.util.List;
 
 import com.dungeon.master.ipl.dto.UserChangePassword;
 import com.dungeon.master.ipl.dto.UserDto;
+import com.dungeon.master.ipl.dto.UserRechargeDto;
 import com.dungeon.master.ipl.model.Contest;
+import com.dungeon.master.ipl.model.UserRecharge;
 import com.dungeon.master.ipl.service.UserContestService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,5 +60,15 @@ public class UserController {
     @GetMapping(path = "/getcontests/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public List<Contest> getUserContest(@PathVariable long id) {
         return userContestService.getUserContest(id);
+    }
+
+    @GetMapping(path = "/getrechargehistory/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public List<UserRechargeDto> getRechageHistory(@PathVariable long id) {
+        return repositoriesService.getRechageHistory(id);
+    }
+
+    @PostMapping(value = "/recharge/{id}")
+    public void doRecharge(@RequestBody UserRechargeDto userRecharge) {
+        repositoriesService.doRecharge(userRecharge);
     }
 }
