@@ -56,7 +56,7 @@ public class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
             jsonResponse.put("message", "Login Successful");
         } catch (JSONException e) {
             e.printStackTrace();
-            throw new ServletException("GGG");
+            throw new ServletException("Error in authentication");
         }
 
         res.getWriter().write(jsonResponse.toString());
