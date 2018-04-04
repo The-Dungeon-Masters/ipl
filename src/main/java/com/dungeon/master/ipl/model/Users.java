@@ -34,7 +34,7 @@ public class Users implements Serializable {
     private String password;
     private String email;
     private String userType = UserType.User.name();
-    private int points;
+    private float points;
     private String createdBy;
 
     public long getUserId() {
@@ -69,11 +69,11 @@ public class Users implements Serializable {
         this.email = email;
     }
 
-    public int getPoints() {
+    public float getPoints() {
         return points;
     }
 
-    public void setPoints(int points) { this.points = points; }
+    public void setPoints(float points) { this.points = points; }
 
     public String getCreatedBy() { return createdBy; }
 
@@ -83,33 +83,7 @@ public class Users implements Serializable {
 
     public void setUserType(String userType) { this.userType = userType; }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Users users = (Users) o;
-
-        if (userId != users.userId) return false;
-        if (points != users.points) return false;
-        if (!userName.equals(users.userName)) return false;
-        if (!password.equals(users.password)) return false;
-        if (!email.equals(users.email)) return false;
-        if (!userType.equals(users.userType)) return false;
-        return createdBy.equals(users.createdBy);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = (int) (userId ^ (userId >>> 32));
-        result = 31 * result + userName.hashCode();
-        result = 31 * result + password.hashCode();
-        result = 31 * result + email.hashCode();
-        result = 31 * result + userType.hashCode();
-        result = 31 * result + points;
-        result = 31 * result + createdBy.hashCode();
-        return result;
-    }
+    
 
     @Override
     public String toString() {
@@ -122,5 +96,60 @@ public class Users implements Serializable {
                 ", points=" + points +
                 ", createdBy='" + createdBy + '\'' +
                 '}';
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((createdBy == null) ? 0 : createdBy.hashCode());
+        result = prime * result + ((email == null) ? 0 : email.hashCode());
+        result = prime * result + ((password == null) ? 0 : password.hashCode());
+        result = prime * result + Float.floatToIntBits(points);
+        result = prime * result + (int) (userId ^ (userId >>> 32));
+        result = prime * result + ((userName == null) ? 0 : userName.hashCode());
+        result = prime * result + ((userType == null) ? 0 : userType.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Users other = (Users) obj;
+        if (createdBy == null) {
+            if (other.createdBy != null)
+                return false;
+        } else if (!createdBy.equals(other.createdBy))
+            return false;
+        if (email == null) {
+            if (other.email != null)
+                return false;
+        } else if (!email.equals(other.email))
+            return false;
+        if (password == null) {
+            if (other.password != null)
+                return false;
+        } else if (!password.equals(other.password))
+            return false;
+        if (Float.floatToIntBits(points) != Float.floatToIntBits(other.points))
+            return false;
+        if (userId != other.userId)
+            return false;
+        if (userName == null) {
+            if (other.userName != null)
+                return false;
+        } else if (!userName.equals(other.userName))
+            return false;
+        if (userType == null) {
+            if (other.userType != null)
+                return false;
+        } else if (!userType.equals(other.userType))
+            return false;
+        return true;
     }
 }

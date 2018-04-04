@@ -2,7 +2,6 @@ package com.dungeon.master.ipl.model;
 
 import java.io.Serializable;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -34,20 +33,20 @@ public class UserMatch implements Serializable {
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "user_contest_id")
     private UserContest userContest;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "match_id")
     private Match match;
     
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "team_id")
     private Team team;
     
     @Column(nullable = false)
-    private int points;
+    private float points;
 
     public Long getId() {
         return id;
@@ -81,11 +80,11 @@ public class UserMatch implements Serializable {
         this.team = team;
     }
 
-    public int getPoints() {
+    public float getPoints() {
         return points;
     }
 
-    public void setPoints(int points) {
+    public void setPoints(float points) {
         this.points = points;
     }
 

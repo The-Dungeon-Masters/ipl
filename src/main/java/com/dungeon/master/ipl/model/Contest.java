@@ -30,7 +30,7 @@ public class Contest implements Serializable {
     private Long id;
 
     @Column(nullable = true)
-    private int points;
+    private float points;
     
     @Column(nullable = true)
     private String type;
@@ -43,11 +43,11 @@ public class Contest implements Serializable {
         this.id = id;
     }
 
-    public int getPoints() {
+    public float getPoints() {
         return points;
     }
 
-    public void setPoints(int points) {
+    public void setPoints(float points) {
         this.points = points;
     }
 
@@ -64,7 +64,7 @@ public class Contest implements Serializable {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((id == null) ? 0 : id.hashCode());
-        result = prime * result + points;
+        result = prime * result + Float.floatToIntBits(points);
         result = prime * result + ((type == null) ? 0 : type.hashCode());
         return result;
     }
@@ -83,7 +83,7 @@ public class Contest implements Serializable {
                 return false;
         } else if (!id.equals(other.id))
             return false;
-        if (points != other.points)
+        if (Float.floatToIntBits(points) != Float.floatToIntBits(other.points))
             return false;
         if (type == null) {
             if (other.type != null)
@@ -92,4 +92,6 @@ public class Contest implements Serializable {
             return false;
         return true;
     }
+
+    
 }

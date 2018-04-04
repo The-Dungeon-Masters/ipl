@@ -40,7 +40,7 @@ CREATE TABLE if not exists ipl.matches
 CREATE TABLE if not exists ipl.contest
 (
     id int NOT NULL AUTO_INCREMENT,
-    points int NOT NULL,
+    points float NOT NULL,
     type varchar(50) NOT NULL,
     CONSTRAINT contest_pkey PRIMARY KEY (id)
 );
@@ -74,7 +74,7 @@ CREATE TABLE if not exists ipl.user_matches
     user_contest_id int NOT NULL,
     match_id int NOT NULL,
     team_id int NOT NULL,
-    points int,
+    points float,
     CONSTRAINT user_matches_pkey PRIMARY KEY (id),
     CONSTRAINT user_matches_fkey1 FOREIGN KEY (user_contest_id) REFERENCES ipl.contest_users (id) ON UPDATE NO ACTION,
     CONSTRAINT user_matches_fkey3 FOREIGN KEY (match_id) REFERENCES ipl.matches (match_id) ON UPDATE NO ACTION,

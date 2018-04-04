@@ -15,16 +15,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dungeon.master.ipl.dto.ContestPrediction;
 import com.dungeon.master.ipl.dto.ContestwisePrediction;
+import com.dungeon.master.ipl.dto.MatchDto;
 import com.dungeon.master.ipl.dto.MatchPrediction;
 import com.dungeon.master.ipl.dto.MatchSummary;
 import com.dungeon.master.ipl.dto.TeamwiseUsers;
-import com.dungeon.master.ipl.dto.UserDto;
 import com.dungeon.master.ipl.model.Contest;
 import com.dungeon.master.ipl.model.Match;
 import com.dungeon.master.ipl.model.Team;
@@ -36,6 +37,7 @@ import com.dungeon.master.ipl.repository.MatchRepository;
 import com.dungeon.master.ipl.repository.TeamRepository;
 import com.dungeon.master.ipl.repository.UserContestRepository;
 import com.dungeon.master.ipl.repository.UserMatchRepository;
+import com.dungeon.master.ipl.repository.UsersRepository;
 import com.dungeon.master.ipl.service.RepositoriesService;
 
 @RestController
@@ -52,6 +54,9 @@ public class MatchController {
 
     @Autowired
     private TeamRepository teamRepository;
+    
+    @Autowired
+    private UsersRepository usersRepository;
     
     @Autowired
     private ContestRepository contestRepository;
@@ -126,13 +131,15 @@ public class MatchController {
     }
     
     @PostMapping(value = "/predictMatch", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public void addUser(@RequestBody MatchPrediction prediction) {
+    public void predictMatch(@RequestBody MatchPrediction prediction) {
         
-        UserDto userDto = repositoriesService.getUser(prediction.getUserId());
         long matchId = prediction.getMatchId();
+        List<UserContest> userContests = userContestRepository.findByUser(usersRepository.findOne(prediction.getUserId()));
         
         for(ContestPrediction cPrediction:prediction.getContestPredictions()){
-            UserContest userContest = new UserContest(userDto.getUser(), contestRepository.findOne(cPrediction.getContestId()));
+            UserContest userContest = userContests.stream()
+                .filter(uContest -> uContest.getContest().getId().equals(cPrediction.getContestId()))
+                .findFirst().orElse(null);
             
             UserMatch userMatch = new UserMatch();
             userMatch.setUserContest(userContest);
@@ -141,6 +148,81 @@ public class MatchController {
             
             userMatchRepository.save(userMatch);
         }
+    }
+    
+    @PutMapping(value = "/predictMatch", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public void updateMatchPrediction(@RequestBody MatchPrediction prediction) {
+        
+        Match match = matchRepository.findOne(prediction.getMatchId());
+        
+        List<UserContest> userContests = userContestRepository.findByUser(usersRepository.findOne(prediction.getUserId()));
+        for(UserContest userContest:userContests){
+            userMatchRepository.deleteByUserContestAndMatch(userContest, match);
+        }
+        
+        predictMatch(prediction);
+        
+    }
+    
+    @PutMapping(value = "/updateMatch", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public void updateMatchResult(@RequestBody MatchDto matchDto) throws Exception {
+        
+        Match match = matchRepository.findOne(matchDto.getMatchId());
+        String winner = null;
+        if(match.getTeam1().getId() == matchDto.getWinningTeamId()){
+            winner = match.getTeam1().getName(); 
+        }else if(match.getTeam2().getId() == matchDto.getWinningTeamId()){
+            winner = match.getTeam2().getName();
+        }else{
+            throw new Exception("Unknown winning team id...");
+        }
+        match.setStatus(winner);
+        matchRepository.save(match);
+        
+        List<UserMatch> usersMatches = userMatchRepository.getByMatch(match);
+        Map<Contest, List<UserMatch>> map = new HashMap<>();
+        for(UserMatch userMatch:usersMatches){
+            Contest contest = userMatch.getUserContest().getContest();
+            List<UserMatch> userMatches;
+            if(map.containsKey(contest)){
+                userMatches = map.get(contest);
+            }else{
+                userMatches = new ArrayList<>();
+            }
+            userMatches.add(userMatch);
+            map.put(contest, userMatches);
+        }
+        
+        float userPoints;
+        for(Contest contest:map.keySet()){
+            if(contest.getType().equalsIgnoreCase("lunch")){
+                //we'll need do something
+            }else if(contest.getType().contains("Points")){
+                List<UserMatch> userMatches = map.get(contest);
+                List<UserMatch> winners = userMatches.stream()
+                        .filter(userMatch -> userMatch.getTeam().getId() == matchDto.getWinningTeamId())
+                        .collect(Collectors.toList());
+                List<UserMatch> loosers = userMatches.stream()
+                        .filter(userMatch -> userMatch.getTeam().getId() != matchDto.getWinningTeamId())
+                        .collect(Collectors.toList());
+                float looserPoints = loosers.size() * contest.getPoints();
+                int winnerCount = winners.size();
+                for(UserMatch looserMatch:loosers){
+                    looserMatch.setPoints(-contest.getPoints());
+                    Users user = looserMatch.getUserContest().getUser();
+                    user.setPoints(user.getPoints() - contest.getPoints());
+                    usersRepository.save(user);
+                }
+                for(UserMatch winnerMatch:winners){
+                    winnerMatch.setPoints(looserPoints/winnerCount);
+                    Users user = winnerMatch.getUserContest().getUser();
+                    user.setPoints(user.getPoints() + (looserPoints/winnerCount));
+                    usersRepository.save(user);
+                }
+            }
+        }
+        userMatchRepository.save(usersMatches);
+        
     }
 
 }
