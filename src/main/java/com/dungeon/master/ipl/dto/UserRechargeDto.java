@@ -1,19 +1,19 @@
 package com.dungeon.master.ipl.dto;
 
-import com.dungeon.master.ipl.model.Users;
-import com.dungeon.master.ipl.util.JsonStringType;
+import java.util.Date;
+
+import javax.persistence.Entity;
+
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 
-import javax.persistence.Entity;
-import java.util.Date;
-import java.util.List;
+import com.dungeon.master.ipl.util.JsonStringType;
 
 @TypeDefs({@TypeDef(name = "json", typeClass = JsonStringType.class)})
 @Entity
 public class UserRechargeDto {
     long userId;
-    int rechargePoints;
+    float rechargePoints;
     String rechargedBy;
     String comment;
     Date rechargeTime;
@@ -21,7 +21,7 @@ public class UserRechargeDto {
     public UserRechargeDto() {
     }
 
-    public UserRechargeDto(long userId, int rechargePoints, String rechargedBy, String comment, Date rechargeTime) {
+    public UserRechargeDto(long userId, float rechargePoints, String rechargedBy, String comment, Date rechargeTime) {
         this.userId = userId;
         this.rechargePoints = rechargePoints;
         this.rechargedBy = rechargedBy;
@@ -37,11 +37,11 @@ public class UserRechargeDto {
         this.userId = userId;
     }
 
-    public int getRechargePoints() {
+    public float getRechargePoints() {
         return rechargePoints;
     }
 
-    public void setRechargePoints(int rechargePoints) {
+    public void setRechargePoints(float rechargePoints) {
         this.rechargePoints = rechargePoints;
     }
 
@@ -70,30 +70,6 @@ public class UserRechargeDto {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        UserRechargeDto that = (UserRechargeDto) o;
-
-        if (userId != that.userId) return false;
-        if (rechargePoints != that.rechargePoints) return false;
-        if (rechargedBy != null ? !rechargedBy.equals(that.rechargedBy) : that.rechargedBy != null) return false;
-        if (comment != null ? !comment.equals(that.comment) : that.comment != null) return false;
-        return rechargeTime != null ? rechargeTime.equals(that.rechargeTime) : that.rechargeTime == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = (int) (userId ^ (userId >>> 32));
-        result = 31 * result + rechargePoints;
-        result = 31 * result + (rechargedBy != null ? rechargedBy.hashCode() : 0);
-        result = 31 * result + (comment != null ? comment.hashCode() : 0);
-        result = 31 * result + (rechargeTime != null ? rechargeTime.hashCode() : 0);
-        return result;
-    }
-
-    @Override
     public String toString() {
         return "UserRechargeDto{" +
                 "userId=" + userId +
@@ -102,5 +78,48 @@ public class UserRechargeDto {
                 ", comment='" + comment + '\'' +
                 ", rechargeTime=" + rechargeTime +
                 '}';
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((comment == null) ? 0 : comment.hashCode());
+        result = prime * result + Float.floatToIntBits(rechargePoints);
+        result = prime * result + ((rechargeTime == null) ? 0 : rechargeTime.hashCode());
+        result = prime * result + ((rechargedBy == null) ? 0 : rechargedBy.hashCode());
+        result = prime * result + (int) (userId ^ (userId >>> 32));
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        UserRechargeDto other = (UserRechargeDto) obj;
+        if (comment == null) {
+            if (other.comment != null)
+                return false;
+        } else if (!comment.equals(other.comment))
+            return false;
+        if (Float.floatToIntBits(rechargePoints) != Float.floatToIntBits(other.rechargePoints))
+            return false;
+        if (rechargeTime == null) {
+            if (other.rechargeTime != null)
+                return false;
+        } else if (!rechargeTime.equals(other.rechargeTime))
+            return false;
+        if (rechargedBy == null) {
+            if (other.rechargedBy != null)
+                return false;
+        } else if (!rechargedBy.equals(other.rechargedBy))
+            return false;
+        if (userId != other.userId)
+            return false;
+        return true;
     }
 }

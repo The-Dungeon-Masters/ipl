@@ -19,7 +19,7 @@ public class UserRecharge {
     @JoinColumn(name = "user_id")
     Users user;
     @Column(name = "recharge_points", nullable = true)
-    int rechargePoints;
+    float rechargePoints;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "recharged_by")
     Users rechargedBy;
@@ -44,11 +44,11 @@ public class UserRecharge {
         this.user = user;
     }
 
-    public int getRechargePoints() {
+    public float getRechargePoints() {
         return rechargePoints;
     }
 
-    public void setRechargePoints(int rechargePoints) {
+    public void setRechargePoints(float rechargePoints) {
         this.rechargePoints = rechargePoints;
     }
 
@@ -77,32 +77,6 @@ public class UserRecharge {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        UserRecharge that = (UserRecharge) o;
-
-        if (id != that.id) return false;
-        if (rechargePoints != that.rechargePoints) return false;
-        if (user != null ? !user.equals(that.user) : that.user != null) return false;
-        if (rechargedBy != null ? !rechargedBy.equals(that.rechargedBy) : that.rechargedBy != null) return false;
-        if (comments != null ? !comments.equals(that.comments) : that.comments != null) return false;
-        return rechargeTime != null ? rechargeTime.equals(that.rechargeTime) : that.rechargeTime == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + (user != null ? user.hashCode() : 0);
-        result = 31 * result + rechargePoints;
-        result = 31 * result + (rechargedBy != null ? rechargedBy.hashCode() : 0);
-        result = 31 * result + (comments != null ? comments.hashCode() : 0);
-        result = 31 * result + (rechargeTime != null ? rechargeTime.hashCode() : 0);
-        return result;
-    }
-
-    @Override
     public String toString() {
         return "UserRecharge{" +
                 "id=" + id +
@@ -112,5 +86,54 @@ public class UserRecharge {
                 ", comments='" + comments + '\'' +
                 ", rechargeTime=" + rechargeTime +
                 '}';
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((comments == null) ? 0 : comments.hashCode());
+        result = prime * result + (int) (id ^ (id >>> 32));
+        result = prime * result + Float.floatToIntBits(rechargePoints);
+        result = prime * result + ((rechargeTime == null) ? 0 : rechargeTime.hashCode());
+        result = prime * result + ((rechargedBy == null) ? 0 : rechargedBy.hashCode());
+        result = prime * result + ((user == null) ? 0 : user.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        UserRecharge other = (UserRecharge) obj;
+        if (comments == null) {
+            if (other.comments != null)
+                return false;
+        } else if (!comments.equals(other.comments))
+            return false;
+        if (id != other.id)
+            return false;
+        if (Float.floatToIntBits(rechargePoints) != Float.floatToIntBits(other.rechargePoints))
+            return false;
+        if (rechargeTime == null) {
+            if (other.rechargeTime != null)
+                return false;
+        } else if (!rechargeTime.equals(other.rechargeTime))
+            return false;
+        if (rechargedBy == null) {
+            if (other.rechargedBy != null)
+                return false;
+        } else if (!rechargedBy.equals(other.rechargedBy))
+            return false;
+        if (user == null) {
+            if (other.user != null)
+                return false;
+        } else if (!user.equals(other.user))
+            return false;
+        return true;
     }
 }

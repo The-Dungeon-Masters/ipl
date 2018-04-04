@@ -143,7 +143,7 @@ public class RepositoriesService {
         usersRechargeRepository.save(userRecharge);
 
         //Update user points
-        int newPoints = user.getPoints() + userRechargeDto.getRechargePoints();
+        float newPoints = user.getPoints() + userRechargeDto.getRechargePoints();
         user.setPoints(newPoints);
         usersRepository.save(user);
     }

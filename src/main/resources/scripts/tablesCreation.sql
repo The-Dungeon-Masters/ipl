@@ -59,7 +59,7 @@ CREATE TABLE if not exists ipl.user_recharge
 (
     id int NOT NULL AUTO_INCREMENT,
     user_id int NOT NULL,
-    recharge_points int NOT NULL,
+    recharge_points float NOT NULL,
     recharged_by int NOT NULL,
     comments varchar(50) NOT NULL,
     recharge_time timestamp NOT NULL,
