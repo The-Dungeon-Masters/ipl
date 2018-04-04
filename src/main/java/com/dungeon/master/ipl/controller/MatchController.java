@@ -9,11 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,8 +26,8 @@ import com.dungeon.master.ipl.dto.ContestPrediction;
 import com.dungeon.master.ipl.dto.ContestwisePrediction;
 import com.dungeon.master.ipl.dto.MatchDto;
 import com.dungeon.master.ipl.dto.MatchPrediction;
-import com.dungeon.master.ipl.dto.MatchSummary;
-import com.dungeon.master.ipl.dto.TeamwiseUsers;
+import com.dungeon.master.ipl.dto.MatchSummaryDto;
+import com.dungeon.master.ipl.dto.MatchViewDto;
 import com.dungeon.master.ipl.model.Contest;
 import com.dungeon.master.ipl.model.Match;
 import com.dungeon.master.ipl.model.Team;
@@ -67,29 +69,68 @@ public class MatchController {
     @Autowired
     private UserMatchRepository userMatchRepository;
     
+    @GetMapping(produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public List<MatchViewDto> getAllMatches() throws ParseException, IOException {
+        
+        return transformToMatchViewDto(matchRepository.findAll());
+        
+    }
+    
+    private List<MatchViewDto> transformToMatchViewDto(List<Match> matches){
+        List<MatchViewDto> matchDtos = new ArrayList<>();
+        for(Match match:matches){
+            MatchViewDto matchDto = new MatchViewDto();
+            matchDto.setId(match.getId());
+            matchDto.setName(match.getTeam1().getFullName() + " vs " + match.getTeam2().getFullName());
+            matchDto.setStartTime(match.getStartTime());
+            matchDtos.add(matchDto);
+        }
+        return matchDtos;
+    }
+    
     @GetMapping(path = "/todaysMatches", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public List<Match> getTodaysMatches() throws ParseException, IOException {
+    public List<MatchViewDto> getTodaysMatches() throws ParseException, IOException {
         
         List<Match> allMatches = matchRepository.findAll();
         List<Match> todaysMatches = allMatches.stream().
                 filter(match -> DateUtils.isSameDay(match.getStartTime(), Calendar.getInstance().getTime()))
                 .collect(Collectors.toList());
-        return todaysMatches;
+        return transformToMatchViewDto(todaysMatches);
     }
     
-    @GetMapping(path = "/matchSummary", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public MatchSummary getMatchSummary() throws ParseException, IOException {
+    @GetMapping(path = "/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public Match getById(@PathVariable("id") Long id) throws ParseException, IOException {
         
-        Match match = matchRepository.findOne(1L);
+        return matchRepository.findOne(id);
+    }
+    
+    @GetMapping(path = "/matchSummary/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public MatchSummaryDto getMatchSummary(@PathVariable("id") Long id) throws ParseException, IOException {
+        
+        Match match = matchRepository.findOne(id);
         List<UserMatch> usersMatches = userMatchRepository.getByMatch(match);
         
+        //decide winning points
+        Map<Contest, Float> contestwisePoints = new HashMap<>();
+        if(StringUtils.isNotEmpty(match.getStatus())){
+            //match result is out
+            for(UserMatch usersMatch:usersMatches){
+                Contest contest = usersMatch.getUserContest().getContest();
+                if(!contestwisePoints.containsKey(contest)){
+                    if(usersMatch.getPoints() > 0){
+                        contestwisePoints.put(contest, usersMatch.getPoints());
+                    }
+                }
+            }
+        }
+        
         //Map<Contest, Map<Team, List<User>>>
-        Map<Contest, Map<Team, List<Users>>> contestwiseUsersMap = new HashMap<>();
+        Map<Contest, Map<Team, List<String>>> contestwiseUsersMap = new HashMap<>();
         
         for(UserMatch useMatch:usersMatches){
             Contest contest = useMatch.getUserContest().getContest();
             Team team = useMatch.getTeam();
-            Map<Team, List<Users>> teamwiseUsers;
+            Map<Team, List<String>> teamwiseUsers;
             
             if(contestwiseUsersMap.containsKey(contest)){
                 teamwiseUsers = contestwiseUsersMap.get(contest);
@@ -97,14 +138,14 @@ public class MatchController {
                 teamwiseUsers = new HashMap<>();
             }
             
-            List<Users> teamUsers;
+            List<String> teamUsers;
             if(teamwiseUsers.containsKey(team)){
                 teamUsers = teamwiseUsers.get(team);
             }else{
                 teamUsers = new ArrayList<>();
             }
             
-            teamUsers.add(useMatch.getUserContest().getUser());
+            teamUsers.add(useMatch.getUserContest().getUser().getUserName());
             teamwiseUsers.put(team, teamUsers);
             contestwiseUsersMap.put(contest, teamwiseUsers);
         }
@@ -112,22 +153,28 @@ public class MatchController {
         List<ContestwisePrediction> predictions = new ArrayList<>();
         for(Contest contest:contestwiseUsersMap.keySet()){
             ContestwisePrediction prediction = new ContestwisePrediction();
-            prediction.setContest(contest);
-            Map<Team, List<Users>> teamwiseUsersMap = contestwiseUsersMap.get(contest);
-            List<TeamwiseUsers> teamwiseUsers = new ArrayList<>();
-            for(Team team:teamwiseUsersMap.keySet()){
-                TeamwiseUsers teamUser = new TeamwiseUsers();
-                teamUser.setTeam(team);
-                teamUser.setUsers(teamwiseUsersMap.get(team));
-                teamwiseUsers.add(teamUser);
+            prediction.setContestName(contest.getType());
+            if(contestwisePoints.containsKey(contest)){
+                prediction.setWinningPoints(contestwisePoints.get(contest));
             }
-            prediction.setTeamUsers(teamwiseUsers);
+            Map<Team, List<String>> teamwiseUsersMap = contestwiseUsersMap.get(contest);
+            
+            for(Team team:teamwiseUsersMap.keySet()){
+                List<String> teamwiseUsers = teamwiseUsersMap.get(team); 
+                if(team.getName().equalsIgnoreCase(match.getTeam1().getName())){
+                    prediction.setTeam1Users(teamwiseUsers);
+                }else if(team.getName().equalsIgnoreCase(match.getTeam2().getName())){
+                    prediction.setTeam2Users(teamwiseUsers);
+                }
+            }
             predictions.add(prediction);
         }
-        MatchSummary matchSummary = new MatchSummary();
-        matchSummary.setMatch(match);
-        matchSummary.setPredictions(predictions);
-        return matchSummary;
+        MatchSummaryDto matchSummaryDto = new MatchSummaryDto();
+        matchSummaryDto.setTeam1(match.getTeam1().getName());
+        matchSummaryDto.setTeam2(match.getTeam2().getName());
+        matchSummaryDto.setWinner(match.getStatus());
+        matchSummaryDto.setContestwisePredictions(predictions);
+        return matchSummaryDto;
     }
     
     @PostMapping(value = "/predictMatch", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
