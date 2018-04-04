@@ -2,6 +2,9 @@ package com.dungeon.master.ipl.config;
 
 import com.dungeon.master.ipl.model.Credentials;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONException;
+import com.google.gson.JsonObject;
+import org.json.JSONObject;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,5 +47,20 @@ public class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
             Authentication auth) throws IOException, ServletException {
             AuthenticationService
                 .addAuthentication(res, auth.getName());
+
+
+        JSONObject jsonResponse = new JSONObject();
+
+        try {
+            jsonResponse.put("jwtToken", res.getHeader("authorization") );
+            jsonResponse.put("message", "Login Successful");
+        } catch (JSONException e) {
+            e.printStackTrace();
+            throw new ServletException("GGG");
+        }
+
+        res.getWriter().write(jsonResponse.toString());
+        res.setHeader("Subject", auth.getName());
+
     }
 }
