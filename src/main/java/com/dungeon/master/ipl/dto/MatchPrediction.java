@@ -13,17 +13,8 @@ import com.dungeon.master.ipl.util.JsonStringType;
 @Entity
 public class MatchPrediction {
 
-    private long userId;
     private long matchId;
     private List<ContestPrediction> contestPredictions; 
-
-    public long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(long userId) {
-        this.userId = userId;
-    }
 
     public long getMatchId() {
         return matchId;

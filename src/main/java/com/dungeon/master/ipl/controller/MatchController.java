@@ -105,9 +105,30 @@ public class MatchController {
         return matchRepository.findOne(id);
     }
     
+    @GetMapping(path = "/myMatchPrediction/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public MatchPrediction getMyMatchPrediction(@PathVariable("id") Long id) throws ParseException, IOException {
+        MatchPrediction prediction = new MatchPrediction();
+        prediction.setMatchId(id);
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
+        Match match = matchRepository.findOne(id);
+        List<UserMatch> userMatches = userMatchRepository.getByMatch(match);
+        List<ContestPrediction> cPredictions = new ArrayList<ContestPrediction>();
+        for(UserMatch userMatch:userMatches){
+            UserContest userContest = userMatch.getUserContest();
+            if(userContest.getUser().getUserId() == loggedInUserId){
+                ContestPrediction cPred = new ContestPrediction();
+                cPred.setContestId(userContest.getContest().getId());
+                cPred.setTeamId(userMatch.getTeam().getId());
+                cPredictions.add(cPred);
+            }
+        }
+        prediction.setContestPredictions(cPredictions);
+        return prediction;
+    }
+    
     @GetMapping(path = "/myPredictions", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public List<UsersPrediction> getMyPredictions() throws ParseException, IOException {
-        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();;
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
         List<UsersPrediction> predictions = new ArrayList<>();
         List<UserContest> userContests = userContestRepository.findByUser(usersRepository.findOne(loggedInUserId));
         List<UserMatch> userMatches = new ArrayList<>();
@@ -205,7 +226,8 @@ public class MatchController {
     public void predictMatch(@RequestBody MatchPrediction prediction) {
         
         long matchId = prediction.getMatchId();
-        List<UserContest> userContests = userContestRepository.findByUser(usersRepository.findOne(prediction.getUserId()));
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
+        List<UserContest> userContests = userContestRepository.findByUser(usersRepository.findOne(loggedInUserId));
         
         for(ContestPrediction cPrediction:prediction.getContestPredictions()){
             UserContest userContest = userContests.stream()
@@ -226,7 +248,8 @@ public class MatchController {
         
         Match match = matchRepository.findOne(prediction.getMatchId());
         
-        List<UserContest> userContests = userContestRepository.findByUser(usersRepository.findOne(prediction.getUserId()));
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
+        List<UserContest> userContests = userContestRepository.findByUser(usersRepository.findOne(loggedInUserId));
         for(UserContest userContest:userContests){
             userMatchRepository.deleteByUserContestAndMatch(userContest, match);
         }
