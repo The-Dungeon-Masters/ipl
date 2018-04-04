@@ -14,6 +14,8 @@ public interface UserMatchRepository extends JpaRepository<UserMatch, Long> {
 
     List<UserMatch> getByMatch(Match match);
     
+    List<UserMatch> getByUserContest(UserContest userContest);
+    
     @Transactional
     void deleteByUserContestAndMatch(UserContest userContest, Match match);
 }

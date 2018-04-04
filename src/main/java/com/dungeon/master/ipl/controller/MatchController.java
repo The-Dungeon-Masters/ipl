@@ -28,18 +28,19 @@ import com.dungeon.master.ipl.dto.MatchDto;
 import com.dungeon.master.ipl.dto.MatchPrediction;
 import com.dungeon.master.ipl.dto.MatchSummaryDto;
 import com.dungeon.master.ipl.dto.MatchViewDto;
+import com.dungeon.master.ipl.dto.UsersPrediction;
 import com.dungeon.master.ipl.model.Contest;
 import com.dungeon.master.ipl.model.Match;
 import com.dungeon.master.ipl.model.Team;
 import com.dungeon.master.ipl.model.UserContest;
 import com.dungeon.master.ipl.model.UserMatch;
 import com.dungeon.master.ipl.model.Users;
-import com.dungeon.master.ipl.repository.ContestRepository;
 import com.dungeon.master.ipl.repository.MatchRepository;
 import com.dungeon.master.ipl.repository.TeamRepository;
 import com.dungeon.master.ipl.repository.UserContestRepository;
 import com.dungeon.master.ipl.repository.UserMatchRepository;
 import com.dungeon.master.ipl.repository.UsersRepository;
+import com.dungeon.master.ipl.service.CurrentUserDetailsService;
 import com.dungeon.master.ipl.service.RepositoriesService;
 
 @RestController
@@ -61,7 +62,7 @@ public class MatchController {
     private UsersRepository usersRepository;
     
     @Autowired
-    private ContestRepository contestRepository;
+    private CurrentUserDetailsService currentUserDetailsService;
     
     @Autowired
     private UserContestRepository userContestRepository;
@@ -102,6 +103,29 @@ public class MatchController {
     public Match getById(@PathVariable("id") Long id) throws ParseException, IOException {
         
         return matchRepository.findOne(id);
+    }
+    
+    @GetMapping(path = "/myPredictions", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public List<UsersPrediction> getMyPredictions() throws ParseException, IOException {
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();;
+        List<UsersPrediction> predictions = new ArrayList<>();
+        List<UserContest> userContests = userContestRepository.findByUser(usersRepository.findOne(loggedInUserId));
+        List<UserMatch> userMatches = new ArrayList<>();
+        for(UserContest userContest:userContests){
+            userMatches.addAll(userMatchRepository.getByUserContest(userContest));
+        }
+        for(UserMatch userMatch:userMatches){
+            Match match = userMatch.getMatch();
+            UsersPrediction prediction = new UsersPrediction();
+            prediction.setMatchName(match.getTeam1().getName() + " vs " + match.getTeam2().getName());
+            prediction.setContest(userMatch.getUserContest().getContest().getType());
+            prediction.setPoints(userMatch.getPoints());
+            prediction.setPredictedTeam(userMatch.getTeam().getName());
+            prediction.setTime(match.getStartTime());
+            prediction.setWinningTeam(match.getStatus());
+            predictions.add(prediction);
+        }
+        return predictions;
     }
     
     @GetMapping(path = "/matchSummary/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
