@@ -45,6 +45,12 @@ public class UserController {
         return repositoriesService.getAllUsers();
     }
 
+    @GetMapping(path = "/getloggedinuser", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public UserDto getLoggedInUser() {
+        String userName = tokenHelper.getUserNameFromToken();
+        return repositoriesService.getUser(userName);
+    }
+
     @GetMapping(path = "/get/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public UserDto getUser(@PathVariable("id") Long id) {
         return repositoriesService.getUser(id);

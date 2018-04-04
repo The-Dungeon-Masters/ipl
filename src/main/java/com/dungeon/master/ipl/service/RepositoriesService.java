@@ -70,6 +70,19 @@ public class RepositoriesService {
         return userDto;
     }
 
+    public UserDto getUser(String userName) {
+        Users user = usersRepository.findByUserName(userName);
+        UserDto userDto = new UserDto();
+        userDto.setUser(user);
+        List<Long> contestList = new ArrayList<>();
+        List<Contest> contests = userContestService.getUserContest(user.getUserId());
+        for (Contest contest:contests) {
+            contestList.add(contest.getId());
+        }
+        userDto.setContests(contestList);
+        return userDto;
+    }
+
     public Users getUserByName(String name) {
         return usersRepository.findByUserName(name);
     }
