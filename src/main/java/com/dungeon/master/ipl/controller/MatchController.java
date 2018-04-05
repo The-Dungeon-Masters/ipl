@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +41,7 @@ import com.dungeon.master.ipl.repository.UserMatchRepository;
 import com.dungeon.master.ipl.repository.UsersRepository;
 import com.dungeon.master.ipl.service.CurrentUserDetailsService;
 import com.dungeon.master.ipl.service.RepositoriesService;
+import com.dungeon.master.ipl.util.DateUtils;
 
 @RestController
 @RequestMapping("/matches")
@@ -84,6 +84,7 @@ public class MatchController {
             matchDto.setId(match.getId());
             matchDto.setName(match.getTeam1().getFullName() + " vs " + match.getTeam2().getFullName());
             matchDto.setStartTime(match.getStartTime());
+            matchDto.setVenue(match.getVenue());
             matchDtos.add(matchDto);
         }
         return matchDtos;
@@ -97,6 +98,16 @@ public class MatchController {
                 filter(match -> DateUtils.isSameDay(match.getStartTime(), Calendar.getInstance().getTime()))
                 .collect(Collectors.toList());
         return transformToMatchViewDto(todaysMatches);
+    }
+    
+    @GetMapping(path = "/upcomingMatches", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public List<MatchViewDto> getUpcomingMatches() throws ParseException, IOException {
+        
+        List<Match> allMatches = matchRepository.findAll();
+        List<Match> upcomingMatches = allMatches.stream().
+                filter(match -> DateUtils.isFutureDay(match.getStartTime(), Calendar.getInstance().getTime()))
+                .collect(Collectors.toList());
+        return transformToMatchViewDto(upcomingMatches);
     }
     
     @GetMapping(path = "/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)

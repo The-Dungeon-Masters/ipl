@@ -50,6 +50,9 @@ public class Match implements Serializable {
     @Column(name = "start_time", nullable = false)
     private Date startTime;
     
+    @Column(name = "venue", nullable = false)
+    private String venue;
+    
     public Long getId() {
         return id;
     }
@@ -90,6 +93,14 @@ public class Match implements Serializable {
 
     public void setTeam2(Team team2) {
         this.team2 = team2;
+    }
+
+    public String getVenue() {
+        return venue;
+    }
+
+    public void setVenue(String venue) {
+        this.venue = venue;
     }
 
 }

@@ -32,6 +32,7 @@ CREATE TABLE if not exists ipl.matches
     team_two_id int NOT NULL,
     status varchar(50),
     start_time timestamp NOT NULL, 
+    venue varchar(100) NOT NULL,
     CONSTRAINT matches_pkey PRIMARY KEY (match_id),
     CONSTRAINT matches_fkey1 FOREIGN KEY (team_one_id) REFERENCES ipl.teams (team_id) ON UPDATE NO ACTION,
     CONSTRAINT matches_fkey2 FOREIGN KEY (team_two_id) REFERENCES ipl.teams (team_id) ON UPDATE NO ACTION
