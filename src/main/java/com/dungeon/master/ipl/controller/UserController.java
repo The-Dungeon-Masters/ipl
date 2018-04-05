@@ -63,6 +63,9 @@ public class UserController {
 
     @PutMapping("/changepassword")
     public void changePassword(@RequestBody UserChangePassword newPassword) {
+        String userName = tokenHelper.getUserNameFromToken();
+        Users loggedInUser = repositoriesService.getUserByName(userName);
+        newPassword.setUserId(loggedInUser.getUserId());
         repositoriesService.changePassword(newPassword);
     }
 
