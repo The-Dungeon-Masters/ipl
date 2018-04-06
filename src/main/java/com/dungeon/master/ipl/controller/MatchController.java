@@ -5,13 +5,14 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,21 +41,15 @@ import com.dungeon.master.ipl.repository.UserContestRepository;
 import com.dungeon.master.ipl.repository.UserMatchRepository;
 import com.dungeon.master.ipl.repository.UsersRepository;
 import com.dungeon.master.ipl.service.CurrentUserDetailsService;
-import com.dungeon.master.ipl.service.RepositoriesService;
 import com.dungeon.master.ipl.util.DateUtils;
 
 @RestController
 @RequestMapping("/matches")
 public class MatchController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
-
     @Autowired
     private MatchRepository matchRepository;
     
-    @Autowired
-    private RepositoriesService repositoriesService;
-
     @Autowired
     private TeamRepository teamRepository;
     
@@ -162,9 +157,43 @@ public class MatchController {
     
     @GetMapping(path = "/matchSummary/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public MatchSummaryDto getMatchSummary(@PathVariable("id") Long id) throws ParseException, IOException {
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
         
         Match match = matchRepository.findOne(id);
         List<UserMatch> usersMatches = userMatchRepository.getByMatch(match);
+        
+        //filter out based on logged in users contest
+        List<UserContest> userContests = userContestRepository.findByUser(usersRepository.findOne(loggedInUserId));
+        
+        Iterator<UserMatch> it = usersMatches.iterator();
+        
+        if(userContests.size() == 1 && userContests.get(0).getContest().getType().equalsIgnoreCase("lunch")){
+            //logged in user has opted for only Lunch..filter out others
+            while(it.hasNext()){
+                UserMatch userMatch = it.next();
+                if(!userMatch.getUserContest().getContest().getType().equalsIgnoreCase("lunch")){
+                    it.remove();
+                }
+            }
+        }else{
+            //user has opted other than lunch
+            boolean lunchOpted = false;
+            for(UserContest userContest:userContests){
+                if(userContest.getContest().getType().equalsIgnoreCase("lunch")){
+                    lunchOpted = true;
+                    break;
+                }
+            }
+            if(!lunchOpted){
+                //lunch not opted...filter out lunch
+                while(it.hasNext()){
+                    UserMatch userMatch = it.next();
+                    if(userMatch.getUserContest().getContest().getType().equalsIgnoreCase("lunch")){
+                        it.remove();
+                    }
+                }
+            }
+        }
         
         //decide winning points
         Map<Contest, Float> contestwisePoints = new HashMap<>();
@@ -233,17 +262,27 @@ public class MatchController {
         return matchSummaryDto;
     }
     
+    @Transactional
     @PostMapping(value = "/predictMatch", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public void predictMatch(@RequestBody MatchPrediction prediction) {
+    public void predictMatch(@RequestBody MatchPrediction prediction) throws Exception {
         
         long matchId = prediction.getMatchId();
         long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
-        List<UserContest> userContests = userContestRepository.findByUser(usersRepository.findOne(loggedInUserId));
+        Users user = usersRepository.findOne(loggedInUserId);
+        float usersTotalPts = user.getPoints();
+        List<UserContest> userContests = userContestRepository.findByUser(user);
         
         for(ContestPrediction cPrediction:prediction.getContestPredictions()){
+            
             UserContest userContest = userContests.stream()
                 .filter(uContest -> uContest.getContest().getId().equals(cPrediction.getContestId()))
                 .findFirst().orElse(null);
+            
+            if(userContest.getContest().getPoints() > usersTotalPts){
+                throw new Exception("insufficient points..");
+            }else{
+                usersTotalPts = usersTotalPts - userContest.getContest().getPoints();
+            }
             
             UserMatch userMatch = new UserMatch();
             userMatch.setUserContest(userContest);
@@ -254,8 +293,9 @@ public class MatchController {
         }
     }
     
+    @Transactional
     @PutMapping(value = "/predictMatch", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public void updateMatchPrediction(@RequestBody MatchPrediction prediction) {
+    public void updateMatchPrediction(@RequestBody MatchPrediction prediction) throws Exception {
         
         Match match = matchRepository.findOne(prediction.getMatchId());
         
