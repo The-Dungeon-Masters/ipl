@@ -78,6 +78,8 @@ public class MatchController {
             MatchViewDto matchDto = new MatchViewDto();
             matchDto.setId(match.getId());
             matchDto.setName(match.getTeam1().getFullName() + " vs " + match.getTeam2().getFullName());
+            matchDto.setTeam1(match.getTeam1());
+            matchDto.setTeam2(match.getTeam2());
             matchDto.setStartTime(match.getStartTime());
             matchDto.setVenue(match.getVenue());
             matchDtos.add(matchDto);
