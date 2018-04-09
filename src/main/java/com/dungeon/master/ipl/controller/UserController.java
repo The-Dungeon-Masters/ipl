@@ -74,11 +74,10 @@ public class UserController {
     }
 
     @PutMapping("/changepassword")
-    public void changePassword(@RequestBody UserChangePassword newPassword) {
-        String userName = tokenHelper.getUserNameFromToken();
-        Users loggedInUser = repositoriesService.getUserByName(userName);
-        newPassword.setUserId(loggedInUser.getUserId());
-        repositoriesService.changePassword(newPassword);
+    public UserChangePassword changePassword(@RequestBody UserChangePassword newPassword) {
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
+        repositoriesService.changePassword(loggedInUserId, newPassword);
+        return newPassword;
     }
 
     @GetMapping(path = "/getcontests", produces = MediaType.APPLICATION_JSON_VALUE)

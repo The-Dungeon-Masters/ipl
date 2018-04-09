@@ -1,17 +1,8 @@
 package com.dungeon.master.ipl.dto;
 
 public class UserChangePassword {
-    long userId;
     String currentPassword;
     String newPassword;
-
-    public long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(long userId) {
-        this.userId = userId;
-    }
 
     public String getCurrentPassword() {
         return currentPassword;
@@ -30,32 +21,40 @@ public class UserChangePassword {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        UserChangePassword that = (UserChangePassword) o;
-
-        if (userId != that.userId) return false;
-        if (currentPassword != null ? !currentPassword.equals(that.currentPassword) : that.currentPassword != null)
-            return false;
-        return newPassword != null ? newPassword.equals(that.newPassword) : that.newPassword == null;
-    }
-
-    @Override
     public int hashCode() {
-        int result = (int) (userId ^ (userId >>> 32));
-        result = 31 * result + (currentPassword != null ? currentPassword.hashCode() : 0);
-        result = 31 * result + (newPassword != null ? newPassword.hashCode() : 0);
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((currentPassword == null) ? 0 : currentPassword.hashCode());
+        result = prime * result + ((newPassword == null) ? 0 : newPassword.hashCode());
         return result;
     }
 
     @Override
-    public String toString() {
-        return "UserChangePassword{" +
-                "userId=" + userId +
-                ", currentPassword='" + currentPassword + '\'' +
-                ", newPassword='" + newPassword + '\'' +
-                '}';
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        UserChangePassword other = (UserChangePassword) obj;
+        if (currentPassword == null) {
+            if (other.currentPassword != null)
+                return false;
+        } else if (!currentPassword.equals(other.currentPassword))
+            return false;
+        if (newPassword == null) {
+            if (other.newPassword != null)
+                return false;
+        } else if (!newPassword.equals(other.newPassword))
+            return false;
+        return true;
     }
+
+    @Override
+    public String toString() {
+        return "UserChangePassword [currentPassword=" + currentPassword + ", newPassword=" + newPassword + "]";
+    }
+
+    
 }

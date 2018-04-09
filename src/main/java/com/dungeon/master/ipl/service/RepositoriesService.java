@@ -117,8 +117,8 @@ public class RepositoriesService {
     }
 
     @Transactional
-    public void changePassword(UserChangePassword userChangePassword) {
-        Users existingUser = usersRepository.getOne(userChangePassword.getUserId());
+    public void changePassword(long loggedInUserId, UserChangePassword userChangePassword) {
+        Users existingUser = usersRepository.getOne(loggedInUserId);
         // TODO : Check existing password
         existingUser.setPassword(getEncryptedPassword(userChangePassword.getNewPassword()));
         usersRepository.save(existingUser);
