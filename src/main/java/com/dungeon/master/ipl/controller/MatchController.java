@@ -42,6 +42,7 @@ import com.dungeon.master.ipl.repository.UserMatchRepository;
 import com.dungeon.master.ipl.repository.UsersRepository;
 import com.dungeon.master.ipl.service.CurrentUserDetailsService;
 import com.dungeon.master.ipl.util.DateUtils;
+import com.dungeon.master.ipl.util.PointsException;
 
 @RestController
 @RequestMapping("/matches")
@@ -266,7 +267,7 @@ public class MatchController {
     
     @Transactional
     @PostMapping(value = "/predictMatch", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public void predictMatch(@RequestBody MatchPrediction prediction) throws Exception {
+    public MatchPrediction predictMatch(@RequestBody MatchPrediction prediction) throws Exception {
         
         long matchId = prediction.getMatchId();
         long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
@@ -281,7 +282,7 @@ public class MatchController {
                 .findFirst().orElse(null);
             
             if(userContest.getContest().getPoints() > usersTotalPts){
-                throw new Exception("insufficient points..");
+                throw new PointsException("insufficient points..");
             }else{
                 usersTotalPts = usersTotalPts - userContest.getContest().getPoints();
             }
@@ -293,11 +294,14 @@ public class MatchController {
             
             userMatchRepository.save(userMatch);
         }
+        
+        return prediction;
+        
     }
     
     @Transactional
     @PutMapping(value = "/predictMatch", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public void updateMatchPrediction(@RequestBody MatchPrediction prediction) throws Exception {
+    public MatchPrediction updateMatchPrediction(@RequestBody MatchPrediction prediction) throws Exception {
         
         Match match = matchRepository.findOne(prediction.getMatchId());
         
@@ -307,7 +311,7 @@ public class MatchController {
             userMatchRepository.deleteByUserContestAndMatch(userContest, match);
         }
         
-        predictMatch(prediction);
+        return predictMatch(prediction);
         
     }
     
