@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import com.dungeon.master.ipl.model.Users;
+import com.dungeon.master.ipl.repository.UsersRepository;
+import com.dungeon.master.ipl.service.CurrentUserDetailsService;
 import com.dungeon.master.ipl.service.RepositoriesService;
 
 @RestController
@@ -26,6 +28,12 @@ public class UserController {
 
     @Autowired
     private UserContestService userContestService;
+    
+    @Autowired
+    private UsersRepository usersRepository;
+    
+    @Autowired
+    private CurrentUserDetailsService currentUserDetailsService;
 
     @Autowired
     private TokenHelper tokenHelper;
@@ -71,8 +79,8 @@ public class UserController {
 
     @GetMapping(path = "/getcontests", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Contest> getUserContest() {
-        String userName = tokenHelper.getUserNameFromToken();
-        Users loggedInUser = repositoriesService.getUserByName(userName);
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
+        Users loggedInUser = usersRepository.findOne(loggedInUserId);
         logger.info("LoggedIn user: "+loggedInUser);
         return userContestService.getUserContest(loggedInUser.getUserId());
     }
