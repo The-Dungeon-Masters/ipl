@@ -39,11 +39,11 @@ public class UserController {
     private TokenHelper tokenHelper;
 
     @PostMapping(value = "/adduser", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public void addUser(@RequestBody UserDto user) {
+    public Users addUser(@RequestBody UserDto user) {
         long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
         Users loggedInUser = usersRepository.findOne(loggedInUserId);
         user.getUser().setCreatedBy(loggedInUser.getUserName());
-        repositoriesService.saveUser(user);
+        return repositoriesService.saveUser(user);
     }
 
     @DeleteMapping("/delete/{id}")

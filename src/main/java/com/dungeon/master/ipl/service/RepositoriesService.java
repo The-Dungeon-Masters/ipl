@@ -93,7 +93,7 @@ public class RepositoriesService {
     }
 
     @Transactional
-    public void saveUser(UserDto userDto) {
+    public Users saveUser(UserDto userDto) {
         userDto.getUser().setPassword(getEncryptedPassword(userDto.getUser().getPassword()));
         Users addedUser = usersRepository.save(userDto.getUser());
         userContestService.saveUserContest(userDto);
@@ -103,6 +103,7 @@ public class RepositoriesService {
         Users addedByUser = getUserByName(addedUser.getCreatedBy());
         userRecharge.setRechargedBy(addedByUser);
         usersRechargeRepository.save(userRecharge);
+        return addedUser;
     }
 
     @Transactional
