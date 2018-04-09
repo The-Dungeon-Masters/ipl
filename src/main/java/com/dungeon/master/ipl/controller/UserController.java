@@ -40,6 +40,9 @@ public class UserController {
 
     @PostMapping(value = "/adduser", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public void addUser(@RequestBody UserDto user) {
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
+        Users loggedInUser = usersRepository.findOne(loggedInUserId);
+        user.getUser().setCreatedBy(loggedInUser.getUserName());
         repositoriesService.saveUser(user);
     }
 
@@ -55,8 +58,9 @@ public class UserController {
 
     @GetMapping(path = "/getloggedinuser", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public UserDto getLoggedInUser() {
-        String userName = tokenHelper.getUserNameFromToken();
-        return repositoriesService.getUser(userName);
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
+        Users loggedInUser = usersRepository.findOne(loggedInUserId);
+        return repositoriesService.getUser(loggedInUser.getUserName());
     }
 
     @GetMapping(path = "/get/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)

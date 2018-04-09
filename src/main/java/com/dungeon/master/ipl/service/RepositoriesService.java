@@ -97,15 +97,11 @@ public class RepositoriesService {
         userDto.getUser().setPassword(getEncryptedPassword(userDto.getUser().getPassword()));
         Users addedUser = usersRepository.save(userDto.getUser());
         userContestService.saveUserContest(userDto);
-        LOGGER.info("Added User : "+addedUser);
-
         UserRecharge userRecharge = new UserRecharge();
         userRecharge.setUser(addedUser);
         userRecharge.setRechargePoints(addedUser.getPoints());
-        userRecharge.setComments("Initail points");
         Users addedByUser = getUserByName(addedUser.getCreatedBy());
         userRecharge.setRechargedBy(addedByUser);
-        LOGGER.info("User Recharge: "+userRecharge);
         usersRechargeRepository.save(userRecharge);
     }
 
