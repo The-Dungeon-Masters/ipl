@@ -265,6 +265,8 @@ public class MatchController {
         matchSummaryDto.setWinner(match.getStatus());
         if(match.getStartTime().compareTo(Calendar.getInstance().getTime()) < 0){
             matchSummaryDto.setContestwisePredictions(predictions);
+        }else{
+            matchSummaryDto.setContestwisePredictions(new ArrayList<ContestwisePrediction>());
         }
         return matchSummaryDto;
     }
