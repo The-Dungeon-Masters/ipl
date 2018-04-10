@@ -43,7 +43,10 @@ public class UserController {
         long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
         Users loggedInUser = usersRepository.findOne(loggedInUserId);
         user.getUser().setCreatedBy(loggedInUser.getUserName());
-        return repositoriesService.saveUser(user);
+        if(loggedInUser.getUserType().equalsIgnoreCase("admin")){
+            return repositoriesService.saveUser(user);
+        }
+        return null;
     }
 
     @DeleteMapping("/delete/{id}")
