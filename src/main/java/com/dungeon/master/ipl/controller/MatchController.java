@@ -14,6 +14,7 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,6 +42,7 @@ import com.dungeon.master.ipl.repository.UserContestRepository;
 import com.dungeon.master.ipl.repository.UserMatchRepository;
 import com.dungeon.master.ipl.repository.UsersRepository;
 import com.dungeon.master.ipl.service.CurrentUserDetailsService;
+import com.dungeon.master.ipl.util.ContestsException;
 import com.dungeon.master.ipl.util.DateUtils;
 import com.dungeon.master.ipl.util.PointsException;
 
@@ -269,33 +271,7 @@ public class MatchController {
     @PostMapping(value = "/predictMatch", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public MatchPrediction predictMatch(@RequestBody MatchPrediction prediction) throws Exception {
         
-        long matchId = prediction.getMatchId();
-        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
-        Users user = usersRepository.findOne(loggedInUserId);
-        float usersTotalPts = user.getPoints();
-        List<UserContest> userContests = userContestRepository.findByUser(user);
-        
-        for(ContestPrediction cPrediction:prediction.getContestPredictions()){
-            
-            UserContest userContest = userContests.stream()
-                .filter(uContest -> uContest.getContest().getId().equals(cPrediction.getContestId()))
-                .findFirst().orElse(null);
-            
-            if(userContest.getContest().getPoints() > usersTotalPts){
-                throw new PointsException("insufficient points..");
-            }else{
-                usersTotalPts = usersTotalPts - userContest.getContest().getPoints();
-            }
-            
-            UserMatch userMatch = new UserMatch();
-            userMatch.setUserContest(userContest);
-            userMatch.setMatch(matchRepository.findOne(matchId));
-            userMatch.setTeam(teamRepository.findOne(cPrediction.getTeamId()));
-            
-            userMatchRepository.save(userMatch);
-        }
-        
-        return prediction;
+        return saveOrUpdate(prediction, false);
         
     }
     
@@ -311,10 +287,83 @@ public class MatchController {
             userMatchRepository.deleteByUserContestAndMatch(userContest, match);
         }
         
-        return predictMatch(prediction);
+        return saveOrUpdate(prediction, true);
         
     }
     
+    private MatchPrediction saveOrUpdate(MatchPrediction prediction, boolean update) throws ParseException, IOException{
+        Match match = matchRepository.findOne(prediction.getMatchId());
+        if(StringUtils.isNotEmpty(match.getStatus())){
+            //match result is already out
+            throw new ContestsException("Match is already done..you can not predict");
+        }
+        
+        if(match.getStartTime().compareTo(Calendar.getInstance().getTime()) < 0 ){
+            throw new ContestsException("Match is already started..you can not predict");
+        }
+        
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
+        Users user = usersRepository.findOne(loggedInUserId);
+        
+        
+        List<UserContest> userContests = userContestRepository.findByUser(user);
+        
+        //get total points first
+        float usersAvailablePts = user.getPoints();
+        List<UsersPrediction> myPredictions = getMyPredictions();
+        
+        if(!CollectionUtils.isEmpty(myPredictions)){
+            for(UsersPrediction myPredict:myPredictions){
+                if(StringUtils.isBlank(myPredict.getWinningTeam())){
+                    //user has already predicted but points are not updated
+                    for(UserContest uContest:userContests){
+                        if(uContest.getContest().getType().equalsIgnoreCase(myPredict.getContest())){
+                            usersAvailablePts = usersAvailablePts - uContest.getContest().getPoints();
+                            break;
+                        }
+                    }
+                    
+                }
+            }
+        }
+        
+        List<UserMatch> userMatchesToSave = new ArrayList<>();
+        
+        if(CollectionUtils.isEmpty(userContests))
+            throw new ContestsException("User has not opted for any Contest");
+        
+        for(ContestPrediction cPrediction:prediction.getContestPredictions()){
+            
+            if(userContests.stream().
+                    noneMatch(uContest -> uContest.getContest().getId().equals(new Long(cPrediction.getContestId())))){
+                throw new ContestsException("User has not opted for Contest:" + cPrediction.getContestId());
+            }
+            
+            UserContest userContest = userContests.stream()
+                .filter(uContest -> uContest.getContest().getId().equals(cPrediction.getContestId()))
+                .findFirst().orElse(null);
+            
+            if(!update){
+                if(userContest.getContest().getPoints() > usersAvailablePts){
+                    throw new PointsException("insufficient points..");
+                }else{
+                    usersAvailablePts = usersAvailablePts - userContest.getContest().getPoints();
+                }
+            }
+            
+            UserMatch userMatch = new UserMatch();
+            userMatch.setUserContest(userContest);
+            userMatch.setMatch(match);
+            userMatch.setTeam(teamRepository.findOne(cPrediction.getTeamId()));
+            userMatchesToSave.add(userMatch);
+        }
+        if(!CollectionUtils.isEmpty(userMatchesToSave)){
+            userMatchRepository.save(userMatchesToSave);
+        }
+        return prediction;
+    }
+    
+    @Transactional
     @PutMapping(value = "/updateMatch", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public void updateMatchResult(@RequestBody MatchDto matchDto) throws Exception {
         
@@ -344,7 +393,6 @@ public class MatchController {
             map.put(contest, userMatches);
         }
         
-        float userPoints;
         for(Contest contest:map.keySet()){
             if(contest.getType().equalsIgnoreCase("lunch")){
                 //we'll need do something
@@ -356,19 +404,29 @@ public class MatchController {
                 List<UserMatch> loosers = userMatches.stream()
                         .filter(userMatch -> userMatch.getTeam().getId() != matchDto.getWinningTeamId())
                         .collect(Collectors.toList());
-                float looserPoints = loosers.size() * contest.getPoints();
-                int winnerCount = winners.size();
-                for(UserMatch looserMatch:loosers){
-                    looserMatch.setPoints(-contest.getPoints());
-                    Users user = looserMatch.getUserContest().getUser();
-                    user.setPoints(user.getPoints() - contest.getPoints());
-                    usersRepository.save(user);
+                
+                int loosersCount = CollectionUtils.isEmpty(loosers) ? 0 : loosers.size();
+                int winnerCount = CollectionUtils.isEmpty(winners) ? 0 : winners.size();
+                float looserPoints = loosersCount * contest.getPoints();
+                
+                if(!CollectionUtils.isEmpty(loosers)){
+                    //deduct looser's money if any
+                    for(UserMatch looserMatch:loosers){
+                        looserMatch.setPoints(-contest.getPoints());
+                        Users user = looserMatch.getUserContest().getUser();
+                        user.setPoints(user.getPoints() - contest.getPoints());
+                        usersRepository.save(user);
+                    }
                 }
-                for(UserMatch winnerMatch:winners){
-                    winnerMatch.setPoints(looserPoints/winnerCount);
-                    Users user = winnerMatch.getUserContest().getUser();
-                    user.setPoints(user.getPoints() + (looserPoints/winnerCount));
-                    usersRepository.save(user);
+                
+                if(!CollectionUtils.isEmpty(winners)){
+                    //add to winner's money if any
+                    for(UserMatch winnerMatch:winners){
+                        winnerMatch.setPoints(looserPoints/winnerCount);
+                        Users user = winnerMatch.getUserContest().getUser();
+                        user.setPoints(user.getPoints() + (looserPoints/winnerCount));
+                        usersRepository.save(user);
+                    }
                 }
             }
         }

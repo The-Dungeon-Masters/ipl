@@ -21,5 +21,13 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         
         return new ResponseEntity<>(errorDetails, HttpStatus.FORBIDDEN);
     }
+    
+    @ExceptionHandler(value = { ContestsException.class })
+    protected ResponseEntity<ErrorDetails> handleUnauthorized(RuntimeException ex, WebRequest request) {
+        
+        ErrorDetails errorDetails = new ErrorDetails(ex.getMessage(), Status.UNAUTHORIZED);
+        
+        return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
+    }
 
 }

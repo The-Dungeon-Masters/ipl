@@ -62,7 +62,7 @@ CREATE TABLE if not exists ipl.user_recharge
     user_id int NOT NULL,
     recharge_points float NOT NULL,
     recharged_by int NOT NULL,
-    comments varchar(50) NOT NULL,
+    comments varchar(50) NULL,
     recharge_time timestamp NOT NULL,
     CONSTRAINT user_recharge_pkey PRIMARY KEY (id),
     CONSTRAINT user_recharge_fkey1 FOREIGN KEY (user_id) REFERENCES ipl.users (user_id) ON UPDATE NO ACTION,
@@ -79,7 +79,8 @@ CREATE TABLE if not exists ipl.user_matches
     CONSTRAINT user_matches_pkey PRIMARY KEY (id),
     CONSTRAINT user_matches_fkey1 FOREIGN KEY (user_contest_id) REFERENCES ipl.contest_users (id) ON UPDATE NO ACTION,
     CONSTRAINT user_matches_fkey3 FOREIGN KEY (match_id) REFERENCES ipl.matches (match_id) ON UPDATE NO ACTION,
-    CONSTRAINT user_matches_fkey4 FOREIGN KEY (team_id) REFERENCES ipl.teams (team_id) ON UPDATE NO ACTION
+    CONSTRAINT user_matches_fkey4 FOREIGN KEY (team_id) REFERENCES ipl.teams (team_id) ON UPDATE NO ACTION,
+    UNIQUE KEY user_matches_ukey4 (user_contest_id,match_id, team_id)
 );
 
 CREATE TABLE if not exists ipl.match_results
