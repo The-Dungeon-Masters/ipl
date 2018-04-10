@@ -263,7 +263,9 @@ public class MatchController {
         matchSummaryDto.setTeam1(match.getTeam1().getName());
         matchSummaryDto.setTeam2(match.getTeam2().getName());
         matchSummaryDto.setWinner(match.getStatus());
-        matchSummaryDto.setContestwisePredictions(predictions);
+        if(match.getStartTime().compareTo(Calendar.getInstance().getTime()) < 0){
+            matchSummaryDto.setContestwisePredictions(predictions);
+        }
         return matchSummaryDto;
     }
     
