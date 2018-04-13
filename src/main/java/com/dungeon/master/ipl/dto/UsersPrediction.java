@@ -2,8 +2,9 @@ package com.dungeon.master.ipl.dto;
 
 import java.util.Date;
 
-public class UsersPrediction {
+public class UsersPrediction implements Comparable<UsersPrediction>{
 
+    private long id;
     private String matchName;
     private Date time;
     private String predictedTeam;
@@ -47,11 +48,19 @@ public class UsersPrediction {
     public void setContest(String contest) {
         this.contest = contest;
     }
+    
+    public long getId() {
+        return id;
+    }
+    public void setId(long id) {
+        this.id = id;
+    }
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((contest == null) ? 0 : contest.hashCode());
+        result = prime * result + (int) (id ^ (id >>> 32));
         result = prime * result + ((matchName == null) ? 0 : matchName.hashCode());
         result = prime * result + Float.floatToIntBits(points);
         result = prime * result + ((predictedTeam == null) ? 0 : predictedTeam.hashCode());
@@ -72,6 +81,8 @@ public class UsersPrediction {
             if (other.contest != null)
                 return false;
         } else if (!contest.equals(other.contest))
+            return false;
+        if (id != other.id)
             return false;
         if (matchName == null) {
             if (other.matchName != null)
@@ -99,8 +110,12 @@ public class UsersPrediction {
     }
     @Override
     public String toString() {
-        return "UsersPrediction [matchName=" + matchName + ", time=" + time + ", predictedTeam=" + predictedTeam
-                + ", winningTeam=" + winningTeam + ", points=" + points + ", contest=" + contest + "]";
+        return "UsersPrediction [id=" + id + ", matchName=" + matchName + ", time=" + time + ", predictedTeam="
+                + predictedTeam + ", winningTeam=" + winningTeam + ", points=" + points + ", contest=" + contest + "]";
+    }
+    @Override
+    public int compareTo(UsersPrediction o) {
+        return this.getTime().compareTo(o.getTime());
     }
     
     }

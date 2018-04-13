@@ -3,7 +3,6 @@ package com.dungeon.master.ipl.dto;
 import java.util.List;
 
 public class MatchSummaryDto {
-    private long id;
     private String winner;
     private String team1;
     private String team2;
@@ -32,18 +31,11 @@ public class MatchSummaryDto {
     public void setContestwisePredictions(List<ContestwisePrediction> contestwisePredictions) {
         this.contestwisePredictions = contestwisePredictions;
     }
-    public long getId() {
-        return id;
-    }
-    public void setId(long id) {
-        this.id = id;
-    }
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((contestwisePredictions == null) ? 0 : contestwisePredictions.hashCode());
-        result = prime * result + (int) (id ^ (id >>> 32));
         result = prime * result + ((team1 == null) ? 0 : team1.hashCode());
         result = prime * result + ((team2 == null) ? 0 : team2.hashCode());
         result = prime * result + ((winner == null) ? 0 : winner.hashCode());
@@ -62,8 +54,6 @@ public class MatchSummaryDto {
             if (other.contestwisePredictions != null)
                 return false;
         } else if (!contestwisePredictions.equals(other.contestwisePredictions))
-            return false;
-        if (id != other.id)
             return false;
         if (team1 == null) {
             if (other.team1 != null)
@@ -84,7 +74,7 @@ public class MatchSummaryDto {
     }
     @Override
     public String toString() {
-        return "MatchSummaryDto [id=" + id + ", winner=" + winner + ", team1=" + team1 + ", team2=" + team2
+        return "MatchSummaryDto [winner=" + winner + ", team1=" + team1 + ", team2=" + team2
                 + ", contestwisePredictions=" + contestwisePredictions + "]";
     }
     

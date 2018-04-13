@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +46,7 @@ import com.dungeon.master.ipl.service.CurrentUserDetailsService;
 import com.dungeon.master.ipl.util.ContestsException;
 import com.dungeon.master.ipl.util.DateUtils;
 import com.dungeon.master.ipl.util.PointsException;
+
 
 @RestController
 @RequestMapping("/matches")
@@ -149,6 +151,7 @@ public class MatchController {
         for(UserMatch userMatch:userMatches){
             Match match = userMatch.getMatch();
             UsersPrediction prediction = new UsersPrediction();
+            prediction.setId(match.getId());
             prediction.setMatchName(match.getTeam1().getName() + " vs " + match.getTeam2().getName());
             prediction.setContest(userMatch.getUserContest().getContest().getType());
             prediction.setPoints(userMatch.getPoints());
@@ -157,6 +160,7 @@ public class MatchController {
             prediction.setWinningTeam(match.getStatus());
             predictions.add(prediction);
         }
+        Collections.sort(predictions);
         return predictions;
     }
     
@@ -260,7 +264,6 @@ public class MatchController {
             predictions.add(prediction);
         }
         MatchSummaryDto matchSummaryDto = new MatchSummaryDto();
-        matchSummaryDto.setId(match.getId());
         matchSummaryDto.setTeam1(match.getTeam1().getName());
         matchSummaryDto.setTeam2(match.getTeam2().getName());
         matchSummaryDto.setWinner(match.getStatus());
