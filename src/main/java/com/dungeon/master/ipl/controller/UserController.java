@@ -1,5 +1,6 @@
 package com.dungeon.master.ipl.controller;
 
+import java.util.Calendar;
 import java.util.List;
 
 import com.dungeon.master.ipl.config.TokenHelper;
@@ -98,8 +99,12 @@ public class UserController {
         return repositoriesService.getRechageHistory(loggedInUser.getUserId());
     }
 
-    @PostMapping(value = "/recharge/{id}")
+    @PostMapping(value = "/recharge/")
     public void doRecharge(@RequestBody UserRechargeDto userRecharge) {
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
+        Users loggedInUser = usersRepository.findOne(loggedInUserId);
+        userRecharge.setRechargedBy(loggedInUser.getUserName());
+        userRecharge.setRechargeTime(Calendar.getInstance().getTime());
         repositoriesService.doRecharge(userRecharge);
     }
 }

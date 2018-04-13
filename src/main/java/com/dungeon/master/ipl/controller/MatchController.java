@@ -260,6 +260,7 @@ public class MatchController {
             predictions.add(prediction);
         }
         MatchSummaryDto matchSummaryDto = new MatchSummaryDto();
+        matchSummaryDto.setId(match.getId());
         matchSummaryDto.setTeam1(match.getTeam1().getName());
         matchSummaryDto.setTeam2(match.getTeam2().getName());
         matchSummaryDto.setWinner(match.getStatus());
