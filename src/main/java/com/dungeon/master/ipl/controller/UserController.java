@@ -99,7 +99,7 @@ public class UserController {
         return repositoriesService.getRechageHistory(loggedInUser.getUserId());
     }
 
-    @PostMapping(value = "/recharge/")
+    @PostMapping(value = "/recharge", produces = MediaType.APPLICATION_JSON_VALUE)
     public void doRecharge(@RequestBody UserRechargeDto userRecharge) {
         long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
         Users loggedInUser = usersRepository.findOne(loggedInUserId);
