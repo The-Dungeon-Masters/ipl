@@ -94,8 +94,8 @@ public class UserController {
 
     @GetMapping(path = "/getrechargehistory", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public List<UserRechargeDto> getRechageHistory() {
-        String userName = tokenHelper.getUserNameFromToken();
-        Users loggedInUser = repositoriesService.getUserByName(userName);
+        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
+        Users loggedInUser = usersRepository.findOne(loggedInUserId);
         return repositoriesService.getRechageHistory(loggedInUser.getUserId());
     }
 
