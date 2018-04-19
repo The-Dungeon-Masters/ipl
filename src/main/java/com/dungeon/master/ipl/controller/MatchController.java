@@ -373,7 +373,7 @@ public class MatchController {
     
     @Transactional
     @PutMapping(value = "/updateMatch", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public void updateMatchResult(@RequestBody MatchDto matchDto) throws Exception {
+    public MatchDto updateMatchResult(@RequestBody MatchDto matchDto) throws Exception {
         
         Match match = matchRepository.findOne(matchDto.getMatchId());
         String winner = null;
@@ -439,7 +439,7 @@ public class MatchController {
             }
         }
         userMatchRepository.save(usersMatches);
-        
+        return matchDto;
     }
 
 }
