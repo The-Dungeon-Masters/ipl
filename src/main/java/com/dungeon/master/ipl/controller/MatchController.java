@@ -30,6 +30,7 @@ import com.dungeon.master.ipl.dto.MatchDto;
 import com.dungeon.master.ipl.dto.MatchPrediction;
 import com.dungeon.master.ipl.dto.MatchSummaryDto;
 import com.dungeon.master.ipl.dto.MatchViewDto;
+import com.dungeon.master.ipl.dto.UsersMatchwisePoints;
 import com.dungeon.master.ipl.dto.UsersPrediction;
 import com.dungeon.master.ipl.model.Contest;
 import com.dungeon.master.ipl.model.Match;
@@ -162,6 +163,48 @@ public class MatchController {
         }
         Collections.sort(predictions);
         return predictions;
+    }
+    
+    @GetMapping(path = "/getUsersMatchwisePoints/{userId}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public List<UsersMatchwisePoints> getUsersMatchwisePoints(@PathVariable("userId") long userId) {
+        List<UserMatch> allUsersMatches = userMatchRepository.findAll();
+        List<UserMatch> userMatches = allUsersMatches.stream().
+                filter(userMatch ->userMatch.getUserContest().getUser().getUserId() == userId).collect(Collectors.toList()); 
+        List<UsersMatchwisePoints> list = new ArrayList<>();
+        for(UserMatch userMatch:userMatches){
+            UsersMatchwisePoints dto = new UsersMatchwisePoints();
+            dto.setUserName(userMatch.getUserContest().getUser().getUserName());
+            dto.setContestName(userMatch.getUserContest().getContest().getType());
+            dto.setMatchId(userMatch.getMatch().getId());
+            dto.setPoints(userMatch.getPoints());
+            dto.setMatchName(userMatch.getMatch().getTeam1().getName() + " vs " + userMatch.getMatch().getTeam2().getName());
+            dto.setWinner(userMatch.getMatch().getStatus());
+            dto.setTime(userMatch.getMatch().getStartTime());
+            list.add(dto);
+        }
+        Collections.sort(list);
+        return list;
+    }
+    
+    @GetMapping(path = "/getTopMatchwisePoints", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public List<UsersMatchwisePoints> getTopMatchwisePoints() {
+        List<UserMatch> allUsersMatches = userMatchRepository.findAll();
+        List<UsersMatchwisePoints> list = new ArrayList<>();
+        
+        for(UserMatch userMatch:allUsersMatches){
+            UsersMatchwisePoints dto = new UsersMatchwisePoints();
+            dto.setUserName(userMatch.getUserContest().getUser().getUserName());
+            dto.setContestName(userMatch.getUserContest().getContest().getType());
+            dto.setMatchId(userMatch.getMatch().getId());
+            dto.setPoints(userMatch.getPoints());
+            dto.setMatchName(userMatch.getMatch().getTeam1().getName() + " vs " + userMatch.getMatch().getTeam2().getName());
+            dto.setWinner(userMatch.getMatch().getStatus());
+            dto.setTime(userMatch.getMatch().getStartTime());
+            list.add(dto);
+        }
+        Collections.sort(list);
+        //take first 20 toppers
+        return list.subList(0, 20);
     }
     
     @GetMapping(path = "/matchSummary/{id}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)

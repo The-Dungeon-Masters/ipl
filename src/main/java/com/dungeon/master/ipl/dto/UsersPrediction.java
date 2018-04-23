@@ -115,7 +115,7 @@ public class UsersPrediction implements Comparable<UsersPrediction>{
     }
     @Override
     public int compareTo(UsersPrediction o) {
-        return this.getTime().compareTo(o.getTime());
+        return o.getTime().compareTo(this.getTime());
     }
     
     }
