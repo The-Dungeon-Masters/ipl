@@ -193,6 +193,7 @@ public class MatchController {
         
         for(UserMatch userMatch:allUsersMatches){
             UsersMatchwisePoints dto = new UsersMatchwisePoints();
+            dto.setUserId(userMatch.getUserContest().getUser().getUserId());
             dto.setUserName(userMatch.getUserContest().getUser().getUserName());
             dto.setContestName(userMatch.getUserContest().getContest().getType());
             dto.setMatchId(userMatch.getMatch().getId());

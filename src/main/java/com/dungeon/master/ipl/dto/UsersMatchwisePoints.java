@@ -5,6 +5,7 @@ import java.util.Date;
 public class UsersMatchwisePoints implements Comparable<UsersMatchwisePoints>{
     
     private String userName;
+    private long userId;
     private long matchId;
     private String matchName;
     private String winner;
@@ -92,6 +93,23 @@ public class UsersMatchwisePoints implements Comparable<UsersMatchwisePoints>{
         this.contestName = contestName;
     }
 
+    public long getUserId() {
+        return userId;
+    }
+
+
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
+
+
+    @Override
+    public String toString() {
+        return "UsersMatchwisePoints [userName=" + userName + ", userId=" + userId + ", matchId=" + matchId
+                + ", matchName=" + matchName + ", winner=" + winner + ", time=" + time + ", points=" + points
+                + ", contestName=" + contestName + "]";
+    }
+
 
     @Override
     public int hashCode() {
@@ -102,6 +120,7 @@ public class UsersMatchwisePoints implements Comparable<UsersMatchwisePoints>{
         result = prime * result + ((matchName == null) ? 0 : matchName.hashCode());
         result = prime * result + Float.floatToIntBits(points);
         result = prime * result + ((time == null) ? 0 : time.hashCode());
+        result = prime * result + (int) (userId ^ (userId >>> 32));
         result = prime * result + ((userName == null) ? 0 : userName.hashCode());
         result = prime * result + ((winner == null) ? 0 : winner.hashCode());
         return result;
@@ -136,6 +155,8 @@ public class UsersMatchwisePoints implements Comparable<UsersMatchwisePoints>{
                 return false;
         } else if (!time.equals(other.time))
             return false;
+        if (userId != other.userId)
+            return false;
         if (userName == null) {
             if (other.userName != null)
                 return false;
@@ -147,13 +168,6 @@ public class UsersMatchwisePoints implements Comparable<UsersMatchwisePoints>{
         } else if (!winner.equals(other.winner))
             return false;
         return true;
-    }
-
-
-    @Override
-    public String toString() {
-        return "UsersMatchwisePoints [userName=" + userName + ", matchId=" + matchId + ", matchName=" + matchName
-                + ", winner=" + winner + ", time=" + time + ", points=" + points + ", contestName=" + contestName + "]";
     }
 
 }
