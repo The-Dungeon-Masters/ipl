@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +22,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dungeon.master.ipl.dto.MatchwiseLunchPoints;
 import com.dungeon.master.ipl.dto.UserBoardDto;
 import com.dungeon.master.ipl.dto.UserChangePassword;
 import com.dungeon.master.ipl.dto.UserDto;
 import com.dungeon.master.ipl.dto.UserRechargeDto;
 import com.dungeon.master.ipl.model.Contest;
+import com.dungeon.master.ipl.model.Match;
+import com.dungeon.master.ipl.model.UserContest;
 import com.dungeon.master.ipl.model.UserMatch;
 import com.dungeon.master.ipl.model.Users;
+import com.dungeon.master.ipl.repository.MatchRepository;
+import com.dungeon.master.ipl.repository.UserContestRepository;
 import com.dungeon.master.ipl.repository.UserMatchRepository;
 import com.dungeon.master.ipl.repository.UsersRepository;
 import com.dungeon.master.ipl.service.CurrentUserDetailsService;
@@ -41,10 +49,16 @@ public class UserController {
     private RepositoriesService repositoriesService;
 
     @Autowired
+    private MatchRepository matchRepository;
+    
+    @Autowired
     private UserContestService userContestService;
     
     @Autowired
     private UsersRepository usersRepository;
+    
+    @Autowired
+    private UserContestRepository userContestRepository;
     
     @Autowired
     private UserMatchRepository userMatchRepository;
@@ -112,13 +126,174 @@ public class UserController {
         return repositoriesService.getRechageHistory(loggedInUser.getUserId());
     }
     
+    private boolean checkUserHasPointsContest(){
+        Users loggedInUser = currentUserDetailsService.getLoggedInUser();
+        List<UserContest> userContests = userContestRepository.findByUser(loggedInUser);
+        
+        return userContests.stream()
+                                    .anyMatch(uContest -> uContest.getContest().getType().contains("Points"));
+    }
+    
+    private boolean checkUserHasLunchContest(){
+        Users loggedInUser = currentUserDetailsService.getLoggedInUser();
+        List<UserContest> userContests = userContestRepository.findByUser(loggedInUser);
+        
+        return userContests.stream()
+                                    .anyMatch(uContest -> uContest.getContest().getType().equalsIgnoreCase("Lunch"));
+    }
+    
+    @GetMapping(path = "/getLunchUserBoard", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public List<UserBoardDto> getLunchUserBoard() {
+        List<UserBoardDto> usersBoard = new ArrayList<>();
+        if(!checkUserHasLunchContest())
+            return usersBoard;
+        
+        List<Match> matches = matchRepository.findAll().parallelStream()
+                                .filter(match -> !StringUtils.isEmpty(match.getStatus()))
+                                .collect(Collectors.toList());
+        
+        Collections.sort(matches);
+        
+        List<Users> allUsers = usersRepository.findAll();
+        //get all predictions
+        List<UserMatch> allUsersMatches = userMatchRepository.findAll();
+        
+        for(Users user:allUsers){
+            long userId = user.getUserId();
+            //filter out only points users
+            List<Contest> contests = userContestService.getUserContest(userId);
+            if(!CollectionUtils.isEmpty(contests) 
+                    && !contests.stream().anyMatch(contest -> contest.getType().equalsIgnoreCase("Lunch"))){
+                continue;
+            }
+            
+            //filter out user's lunch matches
+            List<UserMatch> usersLunchMatches = allUsersMatches.stream().filter(
+                        userMatch -> userMatch.getUserContest().getContest().getType().equalsIgnoreCase("Lunch")
+                    &&  userMatch.getUserContest().getUser().getUserId() == userId).collect(Collectors.toList());
+            
+            float matchCountB4UserStarted = 0;
+            float matchMissCount = 0;
+            float matchLooseCount = 0;
+            boolean userStartedPlaying = false;
+            
+            for(Match match:matches){
+                if(!userStartedPlaying){
+                    //check if user started playing 
+                    userStartedPlaying = usersLunchMatches.stream()
+                            .anyMatch(uMatch -> uMatch.getMatch().getId().equals(match.getId()));
+                }
+                if(!userStartedPlaying){
+                    //user has still not started plyaing
+                    matchCountB4UserStarted++;
+                }else{
+                    //user has started playing
+                    UserMatch uMatch = usersLunchMatches.stream().filter(um -> um.getMatch().getId().equals(match.getId())).findFirst().orElse(null);
+                    if(uMatch == null){
+                        //user forgot to predict
+                        matchMissCount++;
+                    }else{
+                        if(!uMatch.getTeam().getName().equalsIgnoreCase(match.getStatus())){
+                            matchLooseCount++;
+                        }
+                    }
+                }
+            }
+            
+            //calculate points
+            float totalPts = (((matchLooseCount + matchMissCount) + (matchCountB4UserStarted/2) ) * 10);
+            UserBoardDto userBoard = new UserBoardDto();
+            userBoard.setUserId(userId);
+            userBoard.setUserName(user.getUserName());
+            userBoard.setTotalPoints( totalPts * -1  );
+            usersBoard.add(userBoard);
+        }
+        
+        return usersBoard;
+    }
+    
+    @GetMapping(path = "/getMatchwiseUserLunchPoints/{userId}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public MatchwiseLunchPoints getMatchwiseUserLunchPoints(@PathVariable("userId") long userId) {
+        
+        MatchwiseLunchPoints matchwisePoints = new MatchwiseLunchPoints();
+        TreeSet<MatchwiseLunchPoints.MatchDetails> matchDetails = new TreeSet<>();
+        matchwisePoints.setMatchDetails(matchDetails);
+        
+        if(!checkUserHasLunchContest())
+            return matchwisePoints;
+        
+        List<Match> matches = matchRepository.findAll().parallelStream()
+                                .filter(match -> !StringUtils.isEmpty(match.getStatus()))
+                                .collect(Collectors.toList());
+        
+        Collections.sort(matches);
+        
+        //get all predictions
+        List<UserMatch> allUsersMatches = userMatchRepository.findAll();
+        
+        //filter out user's lunch matches
+        List<UserMatch> usersLunchMatches = allUsersMatches.stream().filter(
+                    userMatch -> userMatch.getUserContest().getContest().getType().equalsIgnoreCase("Lunch")
+                &&  userMatch.getUserContest().getUser().getUserId() == userId).collect(Collectors.toList());
+        
+        float matchCountB4UserStarted = 0;
+        boolean userStartedPlaying = false;
+        int winMatchesCount = 0;
+        
+        for(Match match:matches){
+            if(!userStartedPlaying){
+                //check if user started playing 
+                userStartedPlaying = usersLunchMatches.stream()
+                        .anyMatch(uMatch -> uMatch.getMatch().getId().equals(match.getId()));
+            }
+            if(!userStartedPlaying){
+                //user has still not started playing
+                matchCountB4UserStarted++;
+            }else{
+                //user has started playing
+                MatchwiseLunchPoints.MatchDetails matchDet = matchwisePoints.new MatchDetails();
+                UserMatch uMatch = usersLunchMatches.stream().filter(um -> um.getMatch().getId().equals(match.getId())).findFirst().orElse(null);
+                String prediction = "";
+                int points = 0;
+                if(uMatch == null){
+                    //user forgot to predict
+                    points = -10;
+                }else{
+                    prediction = uMatch.getTeam().getName();
+                    if(!uMatch.getTeam().getName().equalsIgnoreCase(match.getStatus())){
+                        //user lost
+                        points = -10;
+                    }else{
+                        //user won
+                        winMatchesCount++;
+                        points = 0;
+                    }
+                }
+                matchDet.setMatch(match.getTeam1().getName() + " vs " + match.getTeam2().getName());
+                matchDet.setMatchId(match.getId());
+                matchDet.setPrediction(prediction);
+                matchDet.setPoints(points);
+                matchDetails.add(matchDet);
+            }
+        }
+        
+        matchwisePoints.setUserId(userId);
+        matchwisePoints.setMatchMissCount((int)matchCountB4UserStarted);
+        matchwisePoints.setAdjustment(matchCountB4UserStarted*-5);
+        matchwisePoints.setWinMatchesCount(winMatchesCount);
+        
+        return matchwisePoints;
+    }
+    
     @GetMapping(path = "/getUserBoard", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public List<UserBoardDto> getUserBoard() {
+        List<UserBoardDto> usersBoard = new ArrayList<>();
+
+        if(!checkUserHasPointsContest())
+            return usersBoard;
+        
         List<Users> allUsers = usersRepository.findAll();
         
-        List<UserBoardDto> usersBoard = new ArrayList<>();
-        
-        long loggedInUserId = currentUserDetailsService.getLoggedInUser().getUserId();
         
         //get all predictions
         List<UserMatch> allUsersMatches = userMatchRepository.findAll();
@@ -126,7 +301,7 @@ public class UserController {
         for(Users user:allUsers){
             
             //filter out only lunch users
-            List<Contest> contests = userContestService.getUserContest(loggedInUserId);
+            List<Contest> contests = userContestService.getUserContest(user.getUserId());
             if(!CollectionUtils.isEmpty(contests) 
                     && !contests.stream().anyMatch(contest -> contest.getType().contains("Point"))){
                 continue;

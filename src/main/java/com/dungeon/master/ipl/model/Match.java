@@ -24,7 +24,7 @@ import com.dungeon.master.ipl.util.JsonStringType;
 @TypeDefs({@TypeDef(name = "json", typeClass = JsonStringType.class)})
 @Entity
 @Table(name = "matches")
-public class Match implements Serializable {
+public class Match implements Serializable,Comparable<Match> {
 
     /**
      * 
@@ -101,6 +101,17 @@ public class Match implements Serializable {
 
     public void setVenue(String venue) {
         this.venue = venue;
+    }
+
+    @Override
+    public int compareTo(Match o) {
+        return this.getStartTime().compareTo(o.getStartTime());
+    }
+
+    @Override
+    public String toString() {
+        return "Match [id=" + id + ", team1=" + team1 + ", team2=" + team2 + ", status=" + status + ", startTime="
+                + startTime + ", venue=" + venue + "]";
     }
 
 }

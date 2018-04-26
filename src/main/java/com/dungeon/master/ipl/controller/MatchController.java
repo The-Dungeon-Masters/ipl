@@ -167,10 +167,14 @@ public class MatchController {
     
     @GetMapping(path = "/getUsersMatchwisePoints/{userId}", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public List<UsersMatchwisePoints> getUsersMatchwisePoints(@PathVariable("userId") long userId) {
+        List<UsersMatchwisePoints> list = new ArrayList<>();
+        
+        if(!checkUserHasPointsContest())
+            return list;
+
         List<UserMatch> allUsersMatches = userMatchRepository.findAll();
         List<UserMatch> userMatches = allUsersMatches.stream().
                 filter(userMatch ->userMatch.getUserContest().getUser().getUserId() == userId).collect(Collectors.toList()); 
-        List<UsersMatchwisePoints> list = new ArrayList<>();
         for(UserMatch userMatch:userMatches){
             UsersMatchwisePoints dto = new UsersMatchwisePoints();
             dto.setUserName(userMatch.getUserContest().getUser().getUserName());
@@ -186,10 +190,22 @@ public class MatchController {
         return list;
     }
     
+    private boolean checkUserHasPointsContest(){
+        Users loggedInUser = currentUserDetailsService.getLoggedInUser();
+        List<UserContest> userContests = userContestRepository.findByUser(loggedInUser);
+        
+        return userContests.stream()
+                                    .anyMatch(uContest -> uContest.getContest().getType().contains("Points"));
+    }
+    
     @GetMapping(path = "/getTopMatchwisePoints", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public List<UsersMatchwisePoints> getTopMatchwisePoints() {
-        List<UserMatch> allUsersMatches = userMatchRepository.findAll();
         List<UsersMatchwisePoints> list = new ArrayList<>();
+
+        if(!checkUserHasPointsContest())
+            return list;
+        
+        List<UserMatch> allUsersMatches = userMatchRepository.findAll();
         
         for(UserMatch userMatch:allUsersMatches){
             UsersMatchwisePoints dto = new UsersMatchwisePoints();
