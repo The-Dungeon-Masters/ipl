@@ -159,6 +159,11 @@ public class UserController {
         List<UserMatch> allUsersMatches = userMatchRepository.findAll();
         
         for(Users user:allUsers){
+            
+            //filter out admin users
+            if(user.getUserType().equalsIgnoreCase("admin"))
+                    continue;
+            
             long userId = user.getUserId();
             //filter out only points users
             List<Contest> contests = userContestService.getUserContest(userId);
@@ -205,10 +210,10 @@ public class UserController {
             UserBoardDto userBoard = new UserBoardDto();
             userBoard.setUserId(userId);
             userBoard.setUserName(user.getUserName());
-            userBoard.setTotalPoints( totalPts * -1  );
+            userBoard.setNetPoints( totalPts * -1  );
             usersBoard.add(userBoard);
         }
-        
+        Collections.sort(usersBoard);
         return usersBoard;
     }
     
